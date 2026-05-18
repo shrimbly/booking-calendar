@@ -683,7 +683,13 @@ function ConfirmBar({
   const nights = nightsBetween(start, end);
   const sameDay = start === end;
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 sm:bottom-6 z-30 flex justify-center px-3 sm:px-4">
+    <>
+      <div
+        aria-hidden
+        onClick={onCancel}
+        className="fixed inset-0 z-20 bg-ink/15 animate-backdrop-fade"
+      />
+      <div className="pointer-events-none fixed inset-x-0 bottom-10 sm:bottom-14 z-30 flex justify-center px-3 sm:px-4 animate-toast-pop">
       <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
         <PersonChip person={person} />
         <div className="flex flex-col leading-tight min-w-0">
@@ -719,7 +725,8 @@ function ConfirmBar({
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -761,7 +768,13 @@ function DeleteBar({
   const nights = nightsBetween(booking.start, booking.end);
   const sameDay = booking.start === booking.end;
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 sm:bottom-6 z-30 flex justify-center px-3 sm:px-4">
+    <>
+      <div
+        aria-hidden
+        onClick={onCancel}
+        className="fixed inset-0 z-20 bg-ink/15 animate-backdrop-fade"
+      />
+      <div className="pointer-events-none fixed inset-x-0 bottom-10 sm:bottom-14 z-30 flex justify-center px-3 sm:px-4 animate-toast-pop">
       <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
         <PersonChip person={person} />
         <div className="flex flex-col leading-tight min-w-0">
@@ -794,6 +807,7 @@ function DeleteBar({
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

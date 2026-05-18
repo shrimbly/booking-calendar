@@ -44,7 +44,7 @@ export default async function Home({
   return (
     <main className="flex-1 px-4 sm:px-10 pt-4 sm:pt-8 pb-24 sm:pb-20">
       <div className="mx-auto max-w-[1200px]">
-        <div className="-mb-2 flex items-center justify-end gap-3">
+        <div className="mb-4 sm:-mb-2 flex items-center justify-end gap-3">
           <IdentityPicker people={people} currentId={me.id} />
         </div>
 
@@ -68,7 +68,7 @@ export default async function Home({
           </div>
         </header>
 
-        <nav className="mb-6 sm:mb-10 flex items-center justify-between gap-1 border-b border-soft pb-3 sm:pb-5 text-[11px] sm:text-[12px] overflow-x-auto">
+        <nav className="mb-6 sm:mb-10 flex items-center justify-between gap-1 border-b border-soft pb-3 sm:pb-5 text-[13px] sm:text-[12px] overflow-x-auto">
           {MONTH_NAMES.map((name, idx) => {
             const isCurrent = idx === month;
             return (
@@ -77,8 +77,8 @@ export default async function Home({
                 href={monthHref(year, idx)}
                 className={
                   isCurrent
-                    ? "rounded-full bg-ink px-2.5 py-1 font-medium text-paper shrink-0"
-                    : "rounded-full px-1.5 py-1 text-muted transition-colors hover:text-ink shrink-0"
+                    ? "rounded-full bg-ink px-3 sm:px-2.5 py-1.5 sm:py-1 font-medium text-paper shrink-0"
+                    : "rounded-full px-2 sm:px-1.5 py-1.5 sm:py-1 text-muted transition-colors hover:text-ink shrink-0"
                 }
               >
                 {name.slice(0, 3)}
@@ -101,7 +101,7 @@ export default async function Home({
             className="mr-2 inline-block h-[5px] w-[5px] -translate-y-[1px] rounded-full bg-ink"
             aria-hidden
           />
-          Kuratau Bach
+          Book the Kuratau bach · built by Willie
         </footer>
       </div>
     </main>
