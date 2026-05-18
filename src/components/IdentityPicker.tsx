@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { Person } from "@/lib/data";
+import { setIdentity } from "@/app/actions";
 
 export function IdentityPicker({
   people,
@@ -11,9 +12,13 @@ export function IdentityPicker({
   currentId: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(currentId);
+  const [optimisticId, setOptimisticId] = useState(currentId);
+  const [isPending, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
-  const current = people.find((p) => p.id === selectedId) ?? people[0];
+  const current =
+    people.find((p) => p.id === optimisticId) ??
+    people.find((p) => p.id === currentId) ??
+    people[0];
 
   useEffect(() => {
     if (!open) return;
@@ -70,18 +75,26 @@ export function IdentityPicker({
             You are
           </div>
           {people.map((p) => {
-            const isMe = p.id === selectedId;
+            const isMe = p.id === current.id;
             return (
               <button
                 key={p.id}
                 type="button"
                 role="option"
                 aria-selected={isMe}
+                disabled={isPending}
                 onClick={() => {
-                  setSelectedId(p.id);
+                  if (p.id === current.id) {
+                    setOpen(false);
+                    return;
+                  }
+                  setOptimisticId(p.id);
                   setOpen(false);
+                  startTransition(async () => {
+                    await setIdentity(p.id);
+                  });
                 }}
-                className="flex w-full items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-left text-[12px] transition-colors hover:bg-soft"
+                className="flex w-full items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-left text-[12px] transition-colors hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span
                   className="grid h-[26px] w-[26px] place-items-center rounded-full text-[11px] font-semibold text-paper"

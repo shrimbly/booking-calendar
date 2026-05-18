@@ -2,8 +2,10 @@
 
 import { and, eq, lte, gte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { db } from "@/db/client";
-import { bookings } from "@/db/schema";
+import { bookings, people } from "@/db/schema";
+import { IDENTITY_COOKIE } from "@/lib/identity";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -50,6 +52,36 @@ export async function createBooking(input: {
 
 export async function deleteBooking(id: string): Promise<{ ok: true } | { error: string }> {
   await db.delete(bookings).where(eq(bookings.id, id));
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function setIdentity(
+  personId: string,
+): Promise<{ ok: true } | { error: string }> {
+  const rows = await db
+    .select({ id: people.id })
+    .from(people)
+    .where(eq(people.id, personId))
+    .limit(1);
+  if (rows.length === 0) {
+    return { error: "Unknown person" };
+  }
+  const c = await cookies();
+  c.set(IDENTITY_COOKIE, personId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365,
+    path: "/",
+  });
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function clearIdentity(): Promise<{ ok: true }> {
+  const c = await cookies();
+  c.delete(IDENTITY_COOKIE);
   revalidatePath("/");
   return { ok: true };
 }

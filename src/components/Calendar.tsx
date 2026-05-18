@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
 import type { Booking, Person } from "@/lib/data";
 import { DOW_MON_FIRST, buildMonthCells } from "@/lib/calendar";
+import { createBooking, deleteBooking } from "@/app/actions";
+
+type OptimisticAction =
+  | { type: "add"; booking: Booking }
+  | { type: "remove"; id: string };
 
 const MONTH_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -43,18 +48,24 @@ export function Calendar({
   meId: string;
   today: string;
 }) {
-  const [extraBookings, setExtraBookings] = useState<Booking[]>([]);
   const [pickStart, setPickStart] = useState<string | null>(null);
   const [pickEnd, setPickEnd] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [optimisticBookings, dispatchOptimistic] = useOptimistic<
+    Booking[],
+    OptimisticAction
+  >(initialBookings, (state, action) => {
+    if (action.type === "add") return [...state, action.booking];
+    if (action.type === "remove") return state.filter((b) => b.id !== action.id);
+    return state;
+  });
 
   const me = people.find((p) => p.id === meId);
-
-  const allBookings = useMemo(
-    () => [...initialBookings, ...extraBookings],
-    [initialBookings, extraBookings],
-  );
+  const allBookings = optimisticBookings;
 
   const cells = useMemo(
     () => buildMonthCells(year, month, allBookings, people, today),
@@ -97,6 +108,8 @@ export function Calendar({
 
   type RealRow = {
     bookingKey: string;
+    bookingId: string;
+    personId: string;
     color: string;
     initial: string;
     name: string;
@@ -134,6 +147,8 @@ export function Calendar({
         } else {
           bookingRows.push({
             bookingKey: `${person.id}-${booking.start}-${bc.gridRow}-${bc.col}`,
+            bookingId: booking.id,
+            personId: person.id,
             color: person.color,
             initial: person.initial,
             name: person.first,
@@ -253,16 +268,39 @@ export function Calendar({
 
   function confirm() {
     if (!pickStart || !pickEnd || conflict || !me) return;
-    setExtraBookings((bs) => [
-      ...bs,
-      {
-        id: crypto.randomUUID(),
-        personId: meId,
-        start: pickStart,
-        end: pickEnd,
-      },
-    ]);
+    const start = pickStart;
+    const end = pickEnd;
+    setServerError(null);
     cancel();
+    startTransition(async () => {
+      dispatchOptimistic({
+        type: "add",
+        booking: {
+          id: crypto.randomUUID(),
+          personId: meId,
+          start,
+          end,
+        },
+      });
+      const result = await createBooking({ personId: meId, start, end });
+      if ("error" in result) {
+        setServerError(result.error);
+      }
+    });
+  }
+
+  function confirmDelete() {
+    if (!deletingId) return;
+    const id = deletingId;
+    setServerError(null);
+    setDeletingId(null);
+    startTransition(async () => {
+      dispatchOptimistic({ type: "remove", id });
+      const result = await deleteBooking(id);
+      if ("error" in result) {
+        setServerError(result.error);
+      }
+    });
   }
 
   useEffect(() => {
@@ -273,6 +311,21 @@ export function Calendar({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [pickStart]);
+
+  useEffect(() => {
+    if (!serverError) return;
+    const t = setTimeout(() => setServerError(null), 4000);
+    return () => clearTimeout(t);
+  }, [serverError]);
+
+  useEffect(() => {
+    if (!deletingId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDeletingId(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [deletingId]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -377,50 +430,78 @@ export function Calendar({
           );
         })}
 
-        {realRows.map((rr) => (
-          <div
-            key={rr.bookingKey}
-            className={[
-              "pointer-events-none z-[4] flex h-[20px] sm:h-[26px] items-center self-end overflow-hidden text-[10px] sm:text-[11px] font-medium tracking-[-0.005em] mb-1.5 sm:mb-2.5 pr-1.5 sm:pr-2",
-              rr.isBookingStart ? "pl-[30px] sm:pl-[42px]" : "pl-1.5 sm:pl-2",
-              rr.roundLeft ? "ml-1 sm:ml-1.5" : "",
-              rr.roundRight ? "mr-1 sm:mr-1.5" : "",
-              rr.roundLeft && rr.roundRight
-                ? "rounded-[5px] sm:rounded-[6px]"
-                : rr.roundLeft
-                  ? "rounded-l-[5px] sm:rounded-l-[6px]"
-                  : rr.roundRight
-                    ? "rounded-r-[5px] sm:rounded-r-[6px]"
-                    : "",
-            ].join(" ")}
-            style={{
-              gridColumn: `${rr.startCol} / ${rr.endCol}`,
-              gridRow: rr.gridRow,
-              backgroundColor: `color-mix(in srgb, ${rr.color} 22%, var(--color-paper) 78%)`,
-              color: `color-mix(in srgb, ${rr.color} 92%, var(--color-ink) 8%)`,
-            }}
-          >
-            {rr.isBookingStart ? (
-              <span className="block truncate">{rr.name}</span>
-            ) : null}
-          </div>
-        ))}
+        {realRows.map((rr) => {
+          const isOwn = rr.personId === meId;
+          const isDeleting = deletingId === rr.bookingId;
+          return (
+            <div
+              key={rr.bookingKey}
+              onClick={
+                isOwn && !pickStart
+                  ? () => setDeletingId(rr.bookingId)
+                  : undefined
+              }
+              className={[
+                "z-[4] flex h-[20px] sm:h-[26px] items-center self-end overflow-hidden text-[10px] sm:text-[11px] font-medium tracking-[-0.005em] mb-1.5 sm:mb-2.5 pr-1.5 sm:pr-2 transition-[opacity,outline] duration-150",
+                isOwn && !pickStart
+                  ? "cursor-pointer hover:opacity-90"
+                  : "pointer-events-none",
+                isDeleting
+                  ? "outline outline-2 outline-offset-1 outline-ink/60"
+                  : "",
+                rr.isBookingStart ? "pl-[30px] sm:pl-[42px]" : "pl-1.5 sm:pl-2",
+                rr.roundLeft ? "ml-1 sm:ml-1.5" : "",
+                rr.roundRight ? "mr-1 sm:mr-1.5" : "",
+                rr.roundLeft && rr.roundRight
+                  ? "rounded-[5px] sm:rounded-[6px]"
+                  : rr.roundLeft
+                    ? "rounded-l-[5px] sm:rounded-l-[6px]"
+                    : rr.roundRight
+                      ? "rounded-r-[5px] sm:rounded-r-[6px]"
+                      : "",
+              ].join(" ")}
+              style={{
+                gridColumn: `${rr.startCol} / ${rr.endCol}`,
+                gridRow: rr.gridRow,
+                backgroundColor: `color-mix(in srgb, ${rr.color} 22%, var(--color-paper) 78%)`,
+                color: `color-mix(in srgb, ${rr.color} 92%, var(--color-ink) 8%)`,
+              }}
+            >
+              {rr.isBookingStart ? (
+                <span className="block truncate">{rr.name}</span>
+              ) : null}
+            </div>
+          );
+        })}
 
         {realRows
           .filter((rr) => rr.isBookingStart)
-          .map((rr) => (
-            <div
-              key={`av-${rr.bookingKey}`}
-              className="pointer-events-none z-[8] grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center self-end justify-self-start rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5"
-              style={{
-                gridColumn: rr.startCol,
-                gridRow: rr.gridRow,
-                backgroundColor: rr.color,
-              }}
-            >
-              {rr.initial}
-            </div>
-          ))}
+          .map((rr) => {
+            const isOwn = rr.personId === meId;
+            return (
+              <div
+                key={`av-${rr.bookingKey}`}
+                onClick={
+                  isOwn && !pickStart
+                    ? () => setDeletingId(rr.bookingId)
+                    : undefined
+                }
+                className={[
+                  "z-[8] grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center self-end justify-self-start rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
+                  isOwn && !pickStart
+                    ? "cursor-pointer"
+                    : "pointer-events-none",
+                ].join(" ")}
+                style={{
+                  gridColumn: rr.startCol,
+                  gridRow: rr.gridRow,
+                  backgroundColor: rr.color,
+                }}
+              >
+                {rr.initial}
+              </div>
+            );
+          })}
 
         {previewRows.map((rr, i) => (
           <div
@@ -476,7 +557,32 @@ export function Calendar({
           conflict={conflict}
           onCancel={cancel}
           onConfirm={confirm}
+          pending={isPending}
         />
+      ) : deletingId ? (
+        <DeleteBar
+          booking={
+            optimisticBookings.find((b) => b.id === deletingId) ?? null
+          }
+          person={me}
+          onCancel={() => setDeletingId(null)}
+          onDelete={confirmDelete}
+          pending={isPending}
+        />
+      ) : null}
+
+      {serverError ? (
+        <div className="fixed top-4 right-4 z-40 flex items-center gap-3 rounded-[10px] border border-rule bg-paper px-4 py-2.5 text-[12px] text-ink shadow-[0_8px_24px_-8px_rgba(60,40,20,0.18)]">
+          <span>{serverError}</span>
+          <button
+            type="button"
+            onClick={() => setServerError(null)}
+            className="text-faint transition-colors hover:text-ink"
+            aria-label="dismiss"
+          >
+            ×
+          </button>
+        </div>
       ) : null}
     </>
   );
@@ -538,6 +644,7 @@ function ConfirmBar({
   locked,
   person,
   conflict,
+  pending,
   onCancel,
   onConfirm,
 }: {
@@ -546,6 +653,7 @@ function ConfirmBar({
   locked: boolean;
   person: Person;
   conflict: string | null;
+  pending?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -586,10 +694,69 @@ function ConfirmBar({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={!locked || !!conflict}
+            disabled={!locked || !!conflict || pending}
             className="rounded-full bg-ink px-3 sm:px-4 py-1.5 text-[11px] sm:text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
           >
-            Confirm
+            {pending ? "Saving…" : "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteBar({
+  booking,
+  person,
+  pending,
+  onCancel,
+  onDelete,
+}: {
+  booking: Booking | null;
+  person: Person;
+  pending?: boolean;
+  onCancel: () => void;
+  onDelete: () => void;
+}) {
+  if (!booking) return null;
+  const nights = nightsBetween(booking.start, booking.end);
+  const sameDay = booking.start === booking.end;
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 sm:bottom-6 z-30 flex justify-center px-3 sm:px-4">
+      <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
+        <div
+          className="grid h-[30px] w-[30px] sm:h-[34px] sm:w-[34px] place-items-center rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper shrink-0"
+          style={{ backgroundColor: person.color }}
+        >
+          {person.initial}
+        </div>
+        <div className="flex flex-col leading-tight min-w-0">
+          <span className="text-[12px] sm:text-[13px] font-medium">
+            Remove this stay?
+          </span>
+          <span className="text-[10px] sm:text-[11px] text-muted">
+            {sameDay
+              ? fmtDay(booking.start)
+              : `${fmtDay(booking.start)} → ${fmtDay(booking.end)}`}
+            {" · "}
+            {nights} night{nights === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div className="ml-auto sm:ml-2 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] text-muted transition-colors hover:text-ink"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={pending}
+            className="rounded-full bg-ink px-3 sm:px-4 py-1.5 text-[11px] sm:text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
+          >
+            {pending ? "Removing…" : "Delete"}
           </button>
         </div>
       </div>

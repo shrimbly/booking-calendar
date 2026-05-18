@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ME } from "@/lib/data";
 import { MONTH_NAMES } from "@/lib/calendar";
 import { fetchCalendarData } from "@/lib/data-source";
+import { getCurrentIdentityId } from "@/lib/identity";
 import { IdentityPicker } from "@/components/IdentityPicker";
+import { IdentityOnboarding } from "@/components/IdentityOnboarding";
 import { Calendar } from "@/components/Calendar";
 
 function parseMonthParam(value: string | string[] | undefined): [number, number] {
@@ -26,7 +27,12 @@ export default async function Home({
   const { m } = await searchParams;
   const [year, month] = parseMonthParam(m);
   const { people, bookings, today } = await fetchCalendarData(year, month);
-  const me = people.find((p) => p.id === ME);
+  const identityId = await getCurrentIdentityId();
+  const me = identityId ? people.find((p) => p.id === identityId) : undefined;
+
+  if (!me) {
+    return <IdentityOnboarding people={people} />;
+  }
 
   return (
     <main className="flex-1 px-4 sm:px-10 pt-6 sm:pt-14 pb-32 sm:pb-24">
@@ -39,7 +45,7 @@ export default async function Home({
             />
             <span className="truncate">Kuratau Bach</span>
           </div>
-          <IdentityPicker people={people} currentId={ME} />
+          <IdentityPicker people={people} currentId={me.id} />
         </div>
 
         <header className="mb-6 sm:mb-8 grid grid-cols-[1fr_auto] items-end gap-4 sm:gap-8">
@@ -86,7 +92,7 @@ export default async function Home({
           month={month}
           initialBookings={bookings}
           people={people}
-          meId={ME}
+          meId={me.id}
           today={today}
         />
       </div>
