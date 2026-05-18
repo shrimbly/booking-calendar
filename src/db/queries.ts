@@ -1,0 +1,57 @@
+import { and, gte, lte, or } from "drizzle-orm";
+import { db } from "./client";
+import { bookings, people } from "./schema";
+import type { Person, Booking } from "@/lib/data";
+
+export async function getPeople(): Promise<Person[]> {
+  const rows = await db.select().from(people).orderBy(people.createdAt);
+  return rows.map((r) => ({
+    id: r.id,
+    first: r.firstName,
+    initial: r.firstName.charAt(0).toUpperCase(),
+    color: r.color,
+  }));
+}
+
+export async function getBookingsForMonth(
+  year: number,
+  month: number, // 0-indexed
+): Promise<Booking[]> {
+  // Month boundaries (with one week of overflow so multi-week stays
+  // straddling the visible month are caught)
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  const padStart = new Date(start);
+  padStart.setDate(padStart.getDate() - 7);
+  const padEnd = new Date(end);
+  padEnd.setDate(padEnd.getDate() + 7);
+  const toISO = (d: Date) => d.toISOString().slice(0, 10);
+
+  const rows = await db
+    .select()
+    .from(bookings)
+    .where(
+      and(
+        // booking overlaps the padded range
+        or(
+          // start_date is in the range
+          and(
+            gte(bookings.startDate, toISO(padStart)),
+            lte(bookings.startDate, toISO(padEnd)),
+          ),
+          // end_date is in the range
+          and(
+            gte(bookings.endDate, toISO(padStart)),
+            lte(bookings.endDate, toISO(padEnd)),
+          ),
+        ),
+      ),
+    );
+
+  return rows.map((r) => ({
+    id: r.id,
+    personId: r.personId,
+    start: r.startDate,
+    end: r.endDate,
+  }));
+}

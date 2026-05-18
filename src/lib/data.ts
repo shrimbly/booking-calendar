@@ -1,0 +1,33 @@
+export type Person = {
+  id: string;
+  first: string;
+  initial: string;
+  color: string;
+};
+
+export type Booking = {
+  id: string;
+  personId: string;
+  start: string;
+  end: string;
+};
+
+export const PEOPLE: Person[] = [
+  { id: "james", first: "James", initial: "J", color: "#3a4e48" },
+  { id: "margaret", first: "Margaret", initial: "M", color: "#8b6f47" },
+  { id: "tom", first: "Tom", initial: "T", color: "#6b7a8b" },
+  { id: "sophie", first: "Sophie", initial: "S", color: "#7a8b7a" },
+  { id: "henry", first: "Henry", initial: "H", color: "#a8553c" },
+  { id: "eliza", first: "Eliza", initial: "E", color: "#8b6b7a" },
+];
+
+export const ME = "james";
+
+export const BOOKINGS: Booking[] = [
+  { id: "seed-tom-1", personId: "tom", start: "2026-05-08", end: "2026-05-11" },
+  { id: "seed-sophie-1", personId: "sophie", start: "2026-05-15", end: "2026-05-17" },
+  { id: "seed-margaret-1", personId: "margaret", start: "2026-05-22", end: "2026-05-26" },
+  { id: "seed-henry-1", personId: "henry", start: "2026-05-28", end: "2026-05-31" },
+];
+
+export const TODAY = "2026-05-17";

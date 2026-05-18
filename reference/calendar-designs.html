@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kuratau Bach · Calendar Design Explorations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Geist:wght@100..900&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --ink: #2a2a2a;
+    --ink-soft: #6b6660;
+    --ink-faint: #b6b1a8;
+    --rule: #e3ddd1;
+    --rule-soft: #ece7dd;
+
+    --tone-james: #3a4e48;
+    --tone-margaret: #8b6f47;
+    --tone-tom: #6b7a8b;
+    --tone-sophie: #7a8b7a;
+    --tone-henry: #a8553c;
+    --tone-eliza: #8b6b7a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  button { background: none; border: none; padding: 0; cursor: pointer; color: inherit; font: inherit; }
+
+  /* ---------- NAV ---------- */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(250, 248, 244, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+    font-family: "Instrument Sans", sans-serif;
+  }
+  .nav-brand {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .nav-brand .dim { color: var(--ink-soft); font-weight: 400; }
+  .nav-tabs { display: flex; gap: 2px; font-size: 12px; }
+  .nav-tab {
+    padding: 8px 14px;
+    border-radius: 100px;
+    color: var(--ink-soft);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    transition: background 0.2s, color 0.2s;
+    display: inline-flex; align-items: baseline; gap: 7px;
+  }
+  .nav-tab .n { color: var(--ink-faint); font-weight: 400; font-size: 11px; }
+  .nav-tab:hover { color: var(--ink); }
+  .nav-tab.active { background: var(--ink); color: var(--bg); }
+  .nav-tab.active .n { color: rgba(250,248,244,0.55); }
+
+  /* ---------- SHARED LAYOUT ---------- */
+  .version { display: none; padding: 56px 40px 96px; }
+  .version.active { display: block; }
+  .stage { max-width: 1200px; margin: 0 auto; }
+
+  .topline {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 64px;
+  }
+  .topline .place {
+    font-size: 12px; letter-spacing: 0.005em;
+    color: var(--ink-soft);
+  }
+  .topline .place .dot {
+    display: inline-block;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--tone-james);
+    margin-right: 8px;
+    transform: translateY(-1px);
+  }
+
+  .identity {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 5px 14px 5px 5px;
+    border: 1px solid var(--rule);
+    border-radius: 100px;
+    font-size: 12px;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .identity:hover { border-color: var(--ink); }
+  .identity .av {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--tone-james); color: var(--bg);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 500;
+  }
+  .identity .caret { color: var(--ink-faint); font-size: 10px; }
+
+  .head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 32px;
+    padding-bottom: 28px;
+    margin-bottom: 20px;
+  }
+  .head .month {
+    margin: 0;
+    font-size: clamp(80px, 13vw, 200px);
+    line-height: 0.88;
+    letter-spacing: -0.05em;
+  }
+  .head .year-picker {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding-bottom: 14px;
+  }
+  .head .year-picker .y {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .head .year-picker button {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule);
+    transition: all 0.2s;
+    font-size: 13px;
+  }
+  .head .year-picker button:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  /* ---------- CALENDAR ---------- */
+  .cal {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1px solid var(--ink);
+  }
+  .cal .dow {
+    padding: 14px 12px 16px;
+    font-size: 11px;
+    letter-spacing: 0.01em;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .cal .day {
+    position: relative;
+    min-height: 104px;
+    padding: 14px 12px 12px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .cal .day .n {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .cal .day.out .n { color: var(--ink-faint); }
+  .cal .day.today .n {
+    color: var(--ink);
+    font-weight: 600;
+    position: relative;
+    display: inline-block;
+  }
+  .cal .day.today .n::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+
+  /* booking visual: very soft full-cell wash + tiny initial badge in start cell */
+  .cal .day.has-b {
+    background: color-mix(in srgb, var(--t) 11%, var(--bg) 89%);
+  }
+  .cal .day.has-b .n { color: color-mix(in srgb, var(--t) 80%, var(--ink) 20%); }
+  .cal .day .badge {
+    position: absolute;
+    top: 14px; right: 12px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--t); color: var(--bg);
+    display: grid; place-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  /* ---------- VARIANT 01 · INSTRUMENT SANS ---------- */
+  .v1 { font-family: "Instrument Sans", sans-serif; }
+  .v1 .head .month {
+    font-weight: 500;
+    letter-spacing: -0.055em;
+  }
+  .v1 .head .month .it {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- VARIANT 02 · GEIST ---------- */
+  .v2 { font-family: "Geist", sans-serif; }
+  .v2 .head { align-items: center; padding-bottom: 36px; }
+  .v2 .head .month {
+    font-weight: 600;
+    letter-spacing: -0.06em;
+    font-size: clamp(72px, 11vw, 168px);
+  }
+  .v2 .head .month .yr-inline {
+    font-weight: 300;
+    color: var(--ink-faint);
+    margin-left: 18px;
+  }
+  .v2 .head .year-picker .y { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .v2 .cal .day .n { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  /* ---------- VARIANT 03 · BRICOLAGE GROTESQUE ---------- */
+  .v3 { font-family: "Bricolage Grotesque", sans-serif; }
+  .v3 .head .month {
+    font-weight: 500;
+    font-variation-settings: "opsz" 96, "wdth" 100;
+    letter-spacing: -0.04em;
+  }
+  .v3 .head .year-picker .y { font-variation-settings: "opsz" 24; }
+  .v3 .cal .day .n { font-variation-settings: "opsz" 16; }
+
+  /* ---------- VARIANT 04 · SCHIBSTED GROTESK ---------- */
+  .v4 { font-family: "Schibsted Grotesk", sans-serif; }
+  .v4 .head .month {
+    font-weight: 700;
+    letter-spacing: -0.045em;
+  }
+  .v4 .head .month .am {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+  .v4 .cal .day .n { font-weight: 500; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 720px) {
+    .version { padding: 32px 20px 64px; }
+    .topline { margin-bottom: 40px; }
+    .head { grid-template-columns: 1fr; gap: 16px; padding-bottom: 20px; }
+    .head .year-picker { padding-bottom: 0; justify-content: flex-start; }
+    .cal .day { min-height: 80px; padding: 10px 8px; }
+    .cal .day .n { font-size: 15px; }
+    .cal .day .badge { width: 18px; height: 18px; font-size: 9px; top: 10px; right: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">Kuratau Bach <span class="dim">/ calendar</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-v="v1"><span class="n">01</span>Instrument</button>
+      <button class="nav-tab" data-v="v2"><span class="n">02</span>Geist</button>
+      <button class="nav-tab" data-v="v3"><span class="n">03</span>Bricolage</button>
+      <button class="nav-tab" data-v="v4"><span class="n">04</span>Schibsted</button>
+    </div>
+  </div>
+</nav>
+
+<section class="version v1 active" id="v1">
+  <div class="stage">
+    <div class="topline">
+      <div class="place"><span class="dot"></span>Kuratau Bach</div>
+      <button class="identity"><span class="av">J</span><span>James</span><span class="caret">▾</span></button>
+    </div>
+    <header class="head">
+      <h1 class="month">May</h1>
+      <div class="year-picker">
+        <button aria-label="previous year">‹</button>
+        <span class="y">2026</span>
+        <button aria-label="next year">›</button>
+      </div>
+    </header>
+    <div class="cal" data-cal></div>
+  </div>
+</section>
+
+<section class="version v2" id="v2">
+  <div class="stage">
+    <div class="topline">
+      <div class="place"><span class="dot"></span>Kuratau Bach</div>
+      <button class="identity"><span class="av">J</span><span>James</span><span class="caret">▾</span></button>
+    </div>
+    <header class="head">
+      <h1 class="month">May</h1>
+      <div class="year-picker">
+        <button aria-label="previous year">‹</button>
+        <span class="y">2026</span>
+        <button aria-label="next year">›</button>
+      </div>
+    </header>
+    <div class="cal" data-cal></div>
+  </div>
+</section>
+
+<section class="version v3" id="v3">
+  <div class="stage">
+    <div class="topline">
+      <div class="place"><span class="dot"></span>Kuratau Bach</div>
+      <button class="identity"><span class="av">J</span><span>James</span><span class="caret">▾</span></button>
+    </div>
+    <header class="head">
+      <h1 class="month">May</h1>
+      <div class="year-picker">
+        <button aria-label="previous year">‹</button>
+        <span class="y">2026</span>
+        <button aria-label="next year">›</button>
+      </div>
+    </header>
+    <div class="cal" data-cal></div>
+  </div>
+</section>
+
+<section class="version v4" id="v4">
+  <div class="stage">
+    <div class="topline">
+      <div class="place"><span class="dot"></span>Kuratau Bach</div>
+      <button class="identity"><span class="av">J</span><span>James</span><span class="caret">▾</span></button>
+    </div>
+    <header class="head">
+      <h1 class="month">May</h1>
+      <div class="year-picker">
+        <button aria-label="previous year">‹</button>
+        <span class="y">2026</span>
+        <button aria-label="next year">›</button>
+      </div>
+    </header>
+    <div class="cal" data-cal></div>
+  </div>
+</section>
+
+<script>
+  const PEOPLE = [
+    { id: "james",    first: "James",    initial: "J", color: "#3a4e48" },
+    { id: "margaret", first: "Margaret", initial: "M", color: "#8b6f47" },
+    { id: "tom",      first: "Tom",      initial: "T", color: "#6b7a8b" },
+    { id: "sophie",   first: "Sophie",   initial: "S", color: "#7a8b7a" },
+    { id: "henry",    first: "Henry",    initial: "H", color: "#a8553c" },
+    { id: "eliza",    first: "Eliza",    initial: "E", color: "#8b6b7a" },
+  ];
+  const PERSON = (id) => PEOPLE.find(p => p.id === id);
+
+  const YEAR = 2026, MONTH = 4;
+  const TODAY = "2026-05-17";
+
+  const BOOKINGS = [
+    { personId: "tom",      start: "2026-05-08", end: "2026-05-11" },
+    { personId: "sophie",   start: "2026-05-15", end: "2026-05-17" },
+    { personId: "margaret", start: "2026-05-22", end: "2026-05-26" },
+    { personId: "henry",    start: "2026-05-28", end: "2026-05-31" },
+  ];
+
+  const iso = (y, m, d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+  function buildCells(year, month) {
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const startOffset = (first.getDay() + 6) % 7;
+    const total = Math.ceil((startOffset + last.getDate()) / 7) * 7;
+    const cells = [];
+    for (let i = 0; i < total; i++) {
+      const dayNum = i - startOffset + 1;
+      const date = new Date(year, month, dayNum);
+      const isoStr = iso(date.getFullYear(), date.getMonth(), date.getDate());
+      cells.push({
+        iso: isoStr,
+        day: date.getDate(),
+        inMonth: date.getMonth() === month,
+        isToday: isoStr === TODAY,
+        booking: null,
+      });
+    }
+    BOOKINGS.forEach(b => {
+      cells.forEach(c => {
+        if (c.inMonth && c.iso >= b.start && c.iso <= b.end) {
+          c.booking = {
+            personId: b.personId,
+            person: PERSON(b.personId),
+            isStart: c.iso === b.start,
+            isEnd: c.iso === b.end,
+          };
+        }
+      });
+    });
+    return cells;
+  }
+
+  const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  function renderCalendar(rootEl) {
+    const cells = buildCells(YEAR, MONTH);
+    rootEl.innerHTML = "";
+    DOW.forEach(d => {
+      const el = document.createElement("div");
+      el.className = "dow";
+      el.textContent = d;
+      rootEl.appendChild(el);
+    });
+    cells.forEach(c => {
+      const cell = document.createElement("div");
+      cell.className = "day" + (c.inMonth ? "" : " out") + (c.isToday ? " today" : "");
+      const n = document.createElement("span");
+      n.className = "n";
+      n.textContent = c.day;
+      cell.appendChild(n);
+      if (c.booking) {
+        cell.classList.add("has-b");
+        cell.style.setProperty("--t", c.booking.person.color);
+        if (c.booking.isStart) {
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = c.booking.person.initial;
+          badge.title = c.booking.person.first;
+          cell.appendChild(badge);
+        }
+      }
+      rootEl.appendChild(cell);
+    });
+  }
+
+  document.querySelectorAll("[data-cal]").forEach(renderCalendar);
+
+  document.querySelectorAll(".nav-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".version").forEach(v => v.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.v).classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
+  });
+</script>
+</body>
+</html>
