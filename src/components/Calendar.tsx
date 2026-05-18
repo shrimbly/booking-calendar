@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import type { Booking, Person } from "@/lib/data";
 import { DOW_MON_FIRST, buildMonthCells } from "@/lib/calendar";
 import { createBooking, deleteBooking } from "@/app/actions";
@@ -24,6 +25,23 @@ function nightsBetween(start: string, end: string): number {
   const s = new Date(start).getTime();
   const e = new Date(end).getTime();
   return Math.max(1, Math.round((e - s) / 86400000));
+}
+
+function shiftIso(iso: string, days: number): string {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function rangeOverlapsBookings(
+  start: string,
+  end: string,
+  bookings: Booking[],
+): boolean {
+  for (const b of bookings) {
+    if (start <= b.end && end >= b.start) return true;
+  }
+  return false;
 }
 
 function edgeClasses(isStart: boolean, isEnd: boolean): string {
@@ -55,6 +73,10 @@ export function Calendar({
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [optimisticBookings, dispatchOptimistic] = useOptimistic<
     Booking[],
     OptimisticAction
@@ -238,7 +260,10 @@ export function Calendar({
       return;
     }
     // pickStart already set, second click commits end (swap if before start)
-    if (iso === pickStart) return;
+    if (iso === pickStart) {
+      setPickEnd(iso);
+      return;
+    }
     if (iso > pickStart) {
       setPickEnd(iso);
     } else {
@@ -292,6 +317,40 @@ export function Calendar({
         setServerError(result.error);
       }
     });
+  }
+
+  function adjustStart(delta: number) {
+    if (!pickStart) return;
+    const newStart = shiftIso(pickStart, delta);
+    const end = pickEnd ?? pickStart;
+    if (newStart > end) return;
+    if (rangeOverlapsBookings(newStart, end, allBookings)) return;
+    setPickStart(newStart);
+  }
+
+  function adjustEnd(delta: number) {
+    if (!pickStart) return;
+    const cur = pickEnd ?? pickStart;
+    const newEnd = shiftIso(cur, delta);
+    if (newEnd < pickStart) return;
+    if (rangeOverlapsBookings(pickStart, newEnd, allBookings)) return;
+    setPickEnd(newEnd);
+  }
+
+  function canAdjustStart(delta: number): boolean {
+    if (!pickStart) return false;
+    const newStart = shiftIso(pickStart, delta);
+    const end = pickEnd ?? pickStart;
+    if (newStart > end) return false;
+    return !rangeOverlapsBookings(newStart, end, allBookings);
+  }
+
+  function canAdjustEnd(delta: number): boolean {
+    if (!pickStart) return false;
+    const cur = pickEnd ?? pickStart;
+    const newEnd = shiftIso(cur, delta);
+    if (newEnd < pickStart) return false;
+    return !rangeOverlapsBookings(pickStart, newEnd, allBookings);
   }
 
   function confirmDelete() {
@@ -571,42 +630,53 @@ export function Calendar({
         ) : null}
       </div>
 
-      {pickStart ? (
-        <ConfirmBar
-          start={pickStart}
-          end={pickEnd ?? pickStart}
-          locked={pickEnd != null}
-          person={me}
-          conflict={conflict}
-          onCancel={cancel}
-          onConfirm={confirm}
-          pending={isPending}
-        />
-      ) : deletingId ? (
-        <DeleteBar
-          booking={
-            optimisticBookings.find((b) => b.id === deletingId) ?? null
-          }
-          person={me}
-          onCancel={() => setDeletingId(null)}
-          onDelete={confirmDelete}
-          pending={isPending}
-        />
-      ) : null}
+      {mounted
+        ? createPortal(
+            <>
+              {pickStart ? (
+                <ConfirmBar
+                  start={pickStart}
+                  end={pickEnd ?? pickStart}
+                  locked={pickEnd != null}
+                  person={me}
+                  conflict={conflict}
+                  onCancel={cancel}
+                  onConfirm={confirm}
+                  onAdjustStart={adjustStart}
+                  onAdjustEnd={adjustEnd}
+                  canAdjustStart={canAdjustStart}
+                  canAdjustEnd={canAdjustEnd}
+                  pending={isPending}
+                />
+              ) : deletingId ? (
+                <DeleteBar
+                  booking={
+                    optimisticBookings.find((b) => b.id === deletingId) ?? null
+                  }
+                  person={me}
+                  onCancel={() => setDeletingId(null)}
+                  onDelete={confirmDelete}
+                  pending={isPending}
+                />
+              ) : null}
 
-      {serverError ? (
-        <div className="fixed top-4 right-4 z-40 flex items-center gap-3 rounded-[10px] border border-rule bg-paper px-4 py-2.5 text-[12px] text-ink shadow-[0_8px_24px_-8px_rgba(60,40,20,0.18)]">
-          <span>{serverError}</span>
-          <button
-            type="button"
-            onClick={() => setServerError(null)}
-            className="text-faint transition-colors hover:text-ink"
-            aria-label="dismiss"
-          >
-            ×
-          </button>
-        </div>
-      ) : null}
+              {serverError ? (
+                <div className="fixed top-4 right-4 z-40 flex items-center gap-3 rounded-[10px] border border-rule bg-paper px-4 py-2.5 text-[12px] text-ink shadow-[0_8px_24px_-8px_rgba(60,40,20,0.18)]">
+                  <span>{serverError}</span>
+                  <button
+                    type="button"
+                    onClick={() => setServerError(null)}
+                    className="text-faint transition-colors hover:text-ink"
+                    aria-label="dismiss"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : null}
+            </>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
@@ -670,6 +740,10 @@ function ConfirmBar({
   pending,
   onCancel,
   onConfirm,
+  onAdjustStart,
+  onAdjustEnd,
+  canAdjustStart,
+  canAdjustEnd,
 }: {
   start: string;
   end: string;
@@ -679,9 +753,15 @@ function ConfirmBar({
   pending?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  onAdjustStart: (delta: number) => void;
+  onAdjustEnd: (delta: number) => void;
+  canAdjustStart: (delta: number) => boolean;
+  canAdjustEnd: (delta: number) => boolean;
 }) {
+  const [editing, setEditing] = useState(false);
   const nights = nightsBetween(start, end);
   const sameDay = start === end;
+  const canEdit = locked;
   return (
     <>
       {locked ? (
@@ -692,43 +772,150 @@ function ConfirmBar({
         />
       ) : null}
       <div className="pointer-events-none fixed inset-x-0 bottom-10 sm:bottom-14 z-30 flex justify-center px-3 sm:px-4 animate-toast-pop">
-      <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
-        <PersonChip person={person} />
-        <div className="flex flex-col leading-tight min-w-0">
-          <span className="text-[12px] sm:text-[13px] font-medium">
-            {sameDay ? fmtDay(start) : `${fmtDay(start)} → ${fmtDay(end)}`}
-          </span>
-          <span className="text-[10px] sm:text-[11px] text-muted">
-            {locked
-              ? `${nights} night${nights === 1 ? "" : "s"} as ${person.first}`
-              : `pick an end date · ${person.first}`}
-          </span>
-        </div>
-        {conflict ? (
-          <div className="basis-full sm:basis-auto sm:ml-1 sm:max-w-[160px] text-[10px] sm:text-[11px] italic text-faint">
-            overlaps {conflict}&rsquo;s stay
+        <div
+          className={[
+            "pointer-events-auto flex w-full flex-col rounded-[12px] sm:rounded-[14px] border border-rule bg-paper shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)] sm:w-[480px] origin-bottom transition-transform duration-500 ease-out",
+            locked ? "-translate-y-3 scale-[1.035]" : "translate-y-0 scale-100",
+          ].join(" ")}
+        >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 px-3 py-2.5 sm:px-4 sm:py-3">
+            <PersonChip person={person} />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-[12px] sm:text-[13px] font-medium truncate">
+                {sameDay ? fmtDay(start) : `${fmtDay(start)} → ${fmtDay(end)}`}
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-muted">
+                {locked
+                  ? `${nights} night${nights === 1 ? "" : "s"} as ${person.first}`
+                  : `pick an end date · ${person.first}`}
+              </span>
+            </div>
+            {canEdit ? (
+              <button
+                type="button"
+                onClick={() => setEditing((v) => !v)}
+                aria-expanded={editing}
+                className={[
+                  "rounded-full border px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] font-medium transition-colors",
+                  editing
+                    ? "border-ink bg-ink text-paper"
+                    : "border-rule text-ink hover:border-ink",
+                ].join(" ")}
+              >
+                Edit
+              </button>
+            ) : null}
+            {conflict ? (
+              <div className="basis-full sm:basis-auto sm:ml-1 sm:max-w-[160px] text-[10px] sm:text-[11px] italic text-faint">
+                overlaps {conflict}&rsquo;s stay
+              </div>
+            ) : null}
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="rounded-full px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] text-muted transition-colors hover:text-ink"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                disabled={!locked || !!conflict || pending}
+                className="rounded-full bg-ink px-3 sm:px-4 py-1.5 text-[11px] sm:text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
+              >
+                {pending ? "Saving…" : "Confirm"}
+              </button>
+            </div>
           </div>
-        ) : null}
-        <div className="ml-auto sm:ml-2 flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-full px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] text-muted transition-colors hover:text-ink"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={!locked || !!conflict || pending}
-            className="rounded-full bg-ink px-3 sm:px-4 py-1.5 text-[11px] sm:text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
-          >
-            {pending ? "Saving…" : "Confirm"}
-          </button>
+          {canEdit ? (
+            <div
+              className="grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out"
+              style={{ gridTemplateRows: editing ? "1fr" : "0fr" }}
+              aria-hidden={!editing}
+            >
+              <div className="overflow-hidden">
+                <div className="border-t border-soft px-3 py-3 sm:px-4 sm:py-3.5 space-y-2">
+                  <NudgeRow
+                    label="Start"
+                    value={fmtDay(start)}
+                    onDec={() => onAdjustStart(-1)}
+                    onInc={() => onAdjustStart(1)}
+                    canDec={canAdjustStart(-1)}
+                    canInc={canAdjustStart(1)}
+                  />
+                  <NudgeRow
+                    label="End"
+                    value={fmtDay(end)}
+                    onDec={() => onAdjustEnd(-1)}
+                    onInc={() => onAdjustEnd(1)}
+                    canDec={canAdjustEnd(-1)}
+                    canInc={canAdjustEnd(1)}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
-      </div>
       </div>
     </>
+  );
+}
+
+function NudgeRow({
+  label,
+  value,
+  onDec,
+  onInc,
+  canDec,
+  canInc,
+}: {
+  label: string;
+  value: string;
+  onDec: () => void;
+  onInc: () => void;
+  canDec: boolean;
+  canInc: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.06em] text-muted w-[40px]">
+        {label}
+      </span>
+      <span className="text-[12px] sm:text-[13px] font-medium tabular-nums flex-1">
+        {value}
+      </span>
+      <NudgeButton onClick={onDec} disabled={!canDec} label={`${label} earlier`}>
+        −
+      </NudgeButton>
+      <NudgeButton onClick={onInc} disabled={!canInc} label={`${label} later`}>
+        +
+      </NudgeButton>
+    </div>
+  );
+}
+
+function NudgeButton({
+  onClick,
+  disabled,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="grid h-8 w-8 place-items-center rounded-full border border-rule text-[14px] text-muted transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-rule disabled:hover:bg-paper disabled:hover:text-muted"
+    >
+      {children}
+    </button>
   );
 }
 
@@ -777,7 +964,7 @@ function DeleteBar({
         className="fixed inset-0 z-20 bg-ink/35 animate-backdrop-fade"
       />
       <div className="pointer-events-none fixed inset-x-0 bottom-10 sm:bottom-14 z-30 flex justify-center px-3 sm:px-4 animate-toast-pop">
-      <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
+      <div className="pointer-events-auto flex w-full flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)] sm:w-[480px]">
         <PersonChip person={person} />
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[12px] sm:text-[13px] font-medium">
