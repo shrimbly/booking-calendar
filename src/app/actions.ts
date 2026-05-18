@@ -5,8 +5,9 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { db } from "@/db/client";
 import { bookings, people } from "@/db/schema";
-import { IDENTITY_COOKIE } from "@/lib/identity";
+import { IDENTITY_COOKIE, getCurrentIdentityId } from "@/lib/identity";
 import { GATE_COOKIE } from "@/lib/gate";
+import { isPaletteColor } from "@/lib/palette";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -116,6 +117,36 @@ export async function lockGate(): Promise<{ ok: true }> {
   const c = await cookies();
   c.delete(GATE_COOKIE);
   c.delete(IDENTITY_COOKIE);
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function updateMyProfile(input: {
+  first?: string;
+  color?: string;
+}): Promise<{ ok: true } | { error: string }> {
+  const id = await getCurrentIdentityId();
+  if (!id) return { error: "Not signed in" };
+
+  const updates: { firstName?: string; color?: string } = {};
+
+  if (input.first !== undefined) {
+    const trimmed = input.first.trim();
+    if (!trimmed) return { error: "Name can't be empty" };
+    if (trimmed.length > 64) return { error: "Name too long" };
+    updates.firstName = trimmed;
+  }
+
+  if (input.color !== undefined) {
+    if (!isPaletteColor(input.color)) {
+      return { error: "That color isn't in the palette" };
+    }
+    updates.color = input.color;
+  }
+
+  if (Object.keys(updates).length === 0) return { ok: true };
+
+  await db.update(people).set(updates).where(eq(people.id, id));
   revalidatePath("/");
   return { ok: true };
 }
