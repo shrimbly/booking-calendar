@@ -10,6 +10,7 @@ export async function getPeople(): Promise<Person[]> {
     first: r.firstName,
     initial: r.firstName.charAt(0).toUpperCase(),
     color: r.color,
+    imageUrl: r.imageUrl,
   }));
 }
 

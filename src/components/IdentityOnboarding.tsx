@@ -46,12 +46,21 @@ export function IdentityOnboarding({ people }: { people: Person[] }) {
                 disabled={isPending}
                 className="flex w-full items-center gap-3 rounded-[10px] border border-rule px-3 py-2.5 text-left transition-all hover:border-ink disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span
-                  className="grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold text-paper shrink-0"
-                  style={{ backgroundColor: p.color }}
-                >
-                  {p.initial}
-                </span>
+                {p.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.imageUrl}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <span
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[13px] font-semibold text-paper"
+                    style={{ backgroundColor: p.color }}
+                  >
+                    {p.initial}
+                  </span>
+                )}
                 <span className="flex-1 text-[14px] font-medium">
                   {p.first}
                 </span>

@@ -8,6 +8,7 @@ import { bookings, people } from "@/db/schema";
 import { IDENTITY_COOKIE, getCurrentIdentityId } from "@/lib/identity";
 import { GATE_COOKIE } from "@/lib/gate";
 import { isPaletteColor } from "@/lib/palette";
+import { put, del } from "@vercel/blob";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -147,6 +148,93 @@ export async function updateMyProfile(input: {
   if (Object.keys(updates).length === 0) return { ok: true };
 
   await db.update(people).set(updates).where(eq(people.id, id));
+  revalidatePath("/");
+  return { ok: true };
+}
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export async function uploadProfileImage(
+  formData: FormData,
+): Promise<{ url: string } | { error: string }> {
+  const id = await getCurrentIdentityId();
+  if (!id) return { error: "Not signed in" };
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return { error: "Image upload isn't configured yet" };
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) return { error: "No file received" };
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return { error: "Image must be jpeg, png, webp, or gif" };
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return { error: "Image must be under 5 MB" };
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const safeExt = /^[a-z0-9]{1,8}$/.test(ext) ? ext : "jpg";
+  const blob = await put(`people/${id}/${Date.now()}.${safeExt}`, file, {
+    access: "public",
+    addRandomSuffix: true,
+    contentType: file.type,
+  });
+
+  // Best-effort: delete the previous image if any
+  const existing = await db
+    .select({ url: people.imageUrl })
+    .from(people)
+    .where(eq(people.id, id))
+    .limit(1);
+  const oldUrl = existing[0]?.url;
+
+  await db
+    .update(people)
+    .set({ imageUrl: blob.url })
+    .where(eq(people.id, id));
+
+  if (oldUrl) {
+    try {
+      await del(oldUrl);
+    } catch {
+      // ignore — leftover blob is harmless
+    }
+  }
+
+  revalidatePath("/");
+  return { url: blob.url };
+}
+
+export async function removeProfileImage(): Promise<{ ok: true } | { error: string }> {
+  const id = await getCurrentIdentityId();
+  if (!id) return { error: "Not signed in" };
+
+  const existing = await db
+    .select({ url: people.imageUrl })
+    .from(people)
+    .where(eq(people.id, id))
+    .limit(1);
+  const oldUrl = existing[0]?.url;
+
+  await db
+    .update(people)
+    .set({ imageUrl: null })
+    .where(eq(people.id, id));
+
+  if (oldUrl && process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      await del(oldUrl);
+    } catch {
+      // ignore
+    }
+  }
+
   revalidatePath("/");
   return { ok: true };
 }

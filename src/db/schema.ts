@@ -4,6 +4,7 @@ export const people = pgTable("people", {
   id: varchar("id", { length: 64 }).primaryKey(),
   firstName: text("first_name").notNull(),
   color: varchar("color", { length: 16 }).notNull(),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

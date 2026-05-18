@@ -113,6 +113,7 @@ export function Calendar({
     color: string;
     initial: string;
     name: string;
+    imageUrl: string | null;
     gridRow: number;
     startCol: number;
     endCol: number;
@@ -152,6 +153,7 @@ export function Calendar({
             color: person.color,
             initial: person.initial,
             name: person.first,
+            imageUrl: person.imageUrl,
             gridRow: bc.gridRow,
             startCol: bc.col,
             endCol: bc.col + 1,
@@ -487,7 +489,7 @@ export function Calendar({
                     : undefined
                 }
                 className={[
-                  "z-[8] grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center self-end justify-self-start rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
+                  "z-[8] grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center self-end justify-self-start overflow-hidden rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
                   isOwn && !pickStart
                     ? "cursor-pointer"
                     : "pointer-events-none",
@@ -495,10 +497,19 @@ export function Calendar({
                 style={{
                   gridColumn: rr.startCol,
                   gridRow: rr.gridRow,
-                  backgroundColor: rr.color,
+                  backgroundColor: rr.imageUrl ? undefined : rr.color,
                 }}
               >
-                {rr.initial}
+                {rr.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={rr.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  rr.initial
+                )}
               </div>
             );
           })}
@@ -536,14 +547,23 @@ export function Calendar({
         {previewRows[0] ? (
           <div
             key="preview-avatar"
-            className="pointer-events-none z-10 grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center self-end justify-self-start rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper opacity-70 animate-avatar-pop mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5"
+            className="pointer-events-none z-10 grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center self-end justify-self-start overflow-hidden rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper opacity-70 animate-avatar-pop mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5"
             style={{
               gridColumn: previewRows[0].startCol,
               gridRow: previewRows[0].gridRow,
-              backgroundColor: me.color,
+              backgroundColor: me.imageUrl ? undefined : me.color,
             }}
           >
-            {me.initial}
+            {me.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={me.imageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              me.initial
+            )}
           </div>
         ) : null}
       </div>
@@ -662,12 +682,7 @@ function ConfirmBar({
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 sm:bottom-6 z-30 flex justify-center px-3 sm:px-4">
       <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
-        <div
-          className="grid h-[30px] w-[30px] sm:h-[34px] sm:w-[34px] place-items-center rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper shrink-0"
-          style={{ backgroundColor: person.color }}
-        >
-          {person.initial}
-        </div>
+        <PersonChip person={person} />
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[12px] sm:text-[13px] font-medium">
             {sameDay ? fmtDay(start) : `${fmtDay(start)} → ${fmtDay(end)}`}
@@ -705,6 +720,27 @@ function ConfirmBar({
   );
 }
 
+function PersonChip({ person }: { person: Person }) {
+  if (person.imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={person.imageUrl}
+        alt=""
+        className="h-[30px] w-[30px] sm:h-[34px] sm:w-[34px] shrink-0 rounded-[5px] sm:rounded-[6px] object-cover"
+      />
+    );
+  }
+  return (
+    <div
+      className="grid h-[30px] w-[30px] sm:h-[34px] sm:w-[34px] shrink-0 place-items-center rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper"
+      style={{ backgroundColor: person.color }}
+    >
+      {person.initial}
+    </div>
+  );
+}
+
 function DeleteBar({
   booking,
   person,
@@ -724,12 +760,7 @@ function DeleteBar({
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 sm:bottom-6 z-30 flex justify-center px-3 sm:px-4">
       <div className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-[0_16px_40px_-16px_rgba(60,40,20,0.18),0_2px_4px_-2px_rgba(60,40,20,0.05)] max-w-[calc(100vw-1.5rem)]">
-        <div
-          className="grid h-[30px] w-[30px] sm:h-[34px] sm:w-[34px] place-items-center rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper shrink-0"
-          style={{ backgroundColor: person.color }}
-        >
-          {person.initial}
-        </div>
+        <PersonChip person={person} />
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[12px] sm:text-[13px] font-medium">
             Remove this stay?

@@ -42,16 +42,9 @@ export default async function Home({
   }
 
   return (
-    <main className="flex-1 px-4 sm:px-10 pt-6 sm:pt-14 pb-32 sm:pb-24">
+    <main className="flex-1 px-4 sm:px-10 pt-4 sm:pt-8 pb-24 sm:pb-20">
       <div className="mx-auto max-w-[1200px]">
-        <div className="mb-8 sm:mb-16 flex items-center justify-between gap-3">
-          <div className="flex items-center text-[12px] text-muted min-w-0">
-            <span
-              className="mr-2 inline-block h-[5px] w-[5px] -translate-y-[1px] rounded-full shrink-0"
-              style={{ backgroundColor: me?.color }}
-            />
-            <span className="truncate">Kuratau Bach</span>
-          </div>
+        <div className="-mb-2 flex items-center justify-end gap-3">
           <IdentityPicker people={people} currentId={me.id} />
         </div>
 
@@ -102,6 +95,14 @@ export default async function Home({
           meId={me.id}
           today={today}
         />
+
+        <footer className="mt-16 sm:mt-24 flex items-center justify-center text-[12px] text-muted">
+          <span
+            className="mr-2 inline-block h-[5px] w-[5px] -translate-y-[1px] rounded-full bg-ink"
+            aria-hidden
+          />
+          Kuratau Bach
+        </footer>
       </div>
     </main>
   );

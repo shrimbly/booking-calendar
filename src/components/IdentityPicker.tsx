@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { Person } from "@/lib/data";
-import { setIdentity, updateMyProfile } from "@/app/actions";
+import {
+  setIdentity,
+  updateMyProfile,
+  uploadProfileImage,
+  removeProfileImage,
+} from "@/app/actions";
 import { PALETTE } from "@/lib/palette";
 
 export function IdentityPicker({
@@ -17,11 +22,16 @@ export function IdentityPicker({
   const [optimisticId, setOptimisticId] = useState(currentId);
   const [optimisticName, setOptimisticName] = useState<string | null>(null);
   const [optimisticColor, setOptimisticColor] = useState<string | null>(null);
+  const [optimisticImageUrl, setOptimisticImageUrl] = useState<
+    string | null | undefined
+  >(undefined);
   const [savedFlash, setSavedFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isPending, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const baseCurrent =
     people.find((p) => p.id === optimisticId) ??
@@ -33,13 +43,17 @@ export function IdentityPicker({
     first: optimisticName ?? baseCurrent.first,
     color: optimisticColor ?? baseCurrent.color,
     initial: (optimisticName ?? baseCurrent.first).charAt(0).toUpperCase(),
+    imageUrl:
+      optimisticImageUrl === undefined
+        ? baseCurrent.imageUrl
+        : optimisticImageUrl,
   };
 
-  // Reset optimistic name/color when the server-side current changes
   useEffect(() => {
     setOptimisticName(null);
     setOptimisticColor(null);
-  }, [baseCurrent.id, baseCurrent.first, baseCurrent.color]);
+    setOptimisticImageUrl(undefined);
+  }, [baseCurrent.id, baseCurrent.first, baseCurrent.color, baseCurrent.imageUrl]);
 
   useEffect(() => {
     if (!open) return;
@@ -100,6 +114,49 @@ export function IdentityPicker({
     });
   }
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.currentTarget.files?.[0];
+    e.currentTarget.value = "";
+    if (!file) return;
+    setError(null);
+    // Local preview while the upload runs
+    const localUrl = URL.createObjectURL(file);
+    setOptimisticImageUrl(localUrl);
+    setIsUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const result = await uploadProfileImage(formData);
+      if ("error" in result) {
+        setError(result.error);
+        setOptimisticImageUrl(undefined);
+      } else {
+        setOptimisticImageUrl(result.url);
+        setSavedFlash(true);
+      }
+    } catch {
+      setError("Upload failed");
+      setOptimisticImageUrl(undefined);
+    } finally {
+      setIsUploadingImage(false);
+      URL.revokeObjectURL(localUrl);
+    }
+  }
+
+  function handleRemoveImage() {
+    setOptimisticImageUrl(null);
+    setError(null);
+    startTransition(async () => {
+      const result = await removeProfileImage();
+      if ("error" in result) {
+        setError(result.error);
+        setOptimisticImageUrl(undefined);
+      } else {
+        setSavedFlash(true);
+      }
+    });
+  }
+
   function switchTo(id: string) {
     if (id === current.id) {
       setOpen(false);
@@ -122,17 +179,12 @@ export function IdentityPicker({
         className="inline-flex items-center gap-2.5 rounded-full border border-rule py-1 pl-1.5 pr-3.5 text-[12px] transition-colors hover:border-ink data-[open=true]:border-ink"
         data-open={open}
       >
-        <span
-          className="grid h-[26px] w-[26px] place-items-center rounded-full text-[12px] font-medium text-paper transition-colors"
-          style={{ backgroundColor: current.color }}
-        >
-          {current.initial}
-        </span>
+        <AvatarCircle person={current} size={26} fontSize={12} />
         <span>{current.first}</span>
         <span
           className={
             open
-              ? "text-[10px] text-faint rotate-180 transition-transform"
+              ? "rotate-180 text-[10px] text-faint transition-transform"
               : "text-[10px] text-faint transition-transform"
           }
         >
@@ -152,9 +204,13 @@ export function IdentityPicker({
               error={error}
               savedFlash={savedFlash}
               isPending={isPending}
+              isUploadingImage={isUploadingImage}
               nameInputRef={nameInputRef}
+              fileInputRef={fileInputRef}
               onCommitName={commitName}
               onPickColor={pickColor}
+              onFileChange={handleFileChange}
+              onRemoveImage={handleRemoveImage}
               onOpenSwitch={() => setView("switch")}
             />
           ) : (
@@ -177,29 +233,32 @@ function ProfileView({
   error,
   savedFlash,
   isPending,
+  isUploadingImage,
   nameInputRef,
+  fileInputRef,
   onCommitName,
   onPickColor,
+  onFileChange,
+  onRemoveImage,
   onOpenSwitch,
 }: {
   current: Person;
   error: string | null;
   savedFlash: boolean;
   isPending: boolean;
+  isUploadingImage: boolean;
   nameInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onCommitName: (name: string) => void;
   onPickColor: (color: string) => void;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: () => void;
   onOpenSwitch: () => void;
 }) {
   return (
     <div className="p-5">
       <div className="mb-5 flex items-center gap-3.5">
-        <div
-          className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full text-[20px] font-medium text-paper transition-colors"
-          style={{ backgroundColor: current.color }}
-        >
-          {current.initial}
-        </div>
+        <AvatarCircle person={current} size={52} fontSize={20} />
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-[0.16em] text-faint">
             You
@@ -258,19 +317,54 @@ function ProfileView({
       </Section>
 
       <Section label="Profile photo">
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          className="flex w-full cursor-not-allowed items-center gap-3 rounded-[8px] border border-dashed border-rule px-3 py-2.5 text-left text-[12px] text-faint"
-          title="Photo upload coming once Vercel Blob is wired up"
-        >
-          <span className="grid h-[24px] w-[24px] place-items-center rounded-full border border-dashed border-rule text-[14px] leading-none">
-            +
-          </span>
-          <span className="flex-1">Add a photo</span>
-          <span className="text-[10px] uppercase tracking-[0.14em]">soon</span>
-        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={onFileChange}
+        />
+        {current.imageUrl ? (
+          <div className="flex items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={current.imageUrl}
+              alt=""
+              className="h-[44px] w-[44px] shrink-0 rounded-full object-cover"
+            />
+            <button
+              type="button"
+              disabled={isUploadingImage}
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 rounded-[8px] border border-rule px-3 py-1.5 text-[12px] text-ink transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isUploadingImage ? "Uploading…" : "Replace"}
+            </button>
+            <button
+              type="button"
+              disabled={isUploadingImage || isPending}
+              onClick={onRemoveImage}
+              className="rounded-[8px] px-2 py-1.5 text-[12px] text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Remove image"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={isUploadingImage}
+            onClick={() => fileInputRef.current?.click()}
+            className="flex w-full items-center gap-3 rounded-[8px] border border-dashed border-rule px-3 py-2.5 text-left text-[12px] text-muted transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="grid h-[24px] w-[24px] place-items-center rounded-full border border-dashed border-rule text-[14px] leading-none text-faint">
+              +
+            </span>
+            <span className="flex-1">
+              {isUploadingImage ? "Uploading…" : "Add a photo"}
+            </span>
+          </button>
+        )}
       </Section>
 
       <div className="-mt-1 mb-2 flex h-[16px] items-center text-[11px]">
@@ -278,7 +372,7 @@ function ProfileView({
           <span className="italic text-faint">{error}</span>
         ) : savedFlash ? (
           <span className="text-muted">Saved</span>
-        ) : isPending ? (
+        ) : isPending || isUploadingImage ? (
           <span className="text-muted">Saving…</span>
         ) : null}
       </div>
@@ -337,12 +431,7 @@ function SwitchView({
               onClick={() => onPick(p.id)}
               className="flex w-full items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-left text-[12px] transition-colors hover:bg-soft disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <span
-                className="grid h-[26px] w-[26px] place-items-center rounded-full text-[11px] font-semibold text-paper"
-                style={{ backgroundColor: p.color }}
-              >
-                {p.initial}
-              </span>
+              <AvatarCircle person={p} size={26} fontSize={11} />
               <span className="flex-1 font-medium">{p.first}</span>
               {isMe ? (
                 <span
@@ -356,6 +445,41 @@ function SwitchView({
         })}
       </div>
     </div>
+  );
+}
+
+function AvatarCircle({
+  person,
+  size,
+  fontSize,
+}: {
+  person: Person;
+  size: number;
+  fontSize: number;
+}) {
+  if (person.imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={person.imageUrl}
+        alt=""
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <span
+      className="grid shrink-0 place-items-center rounded-full font-medium text-paper transition-colors"
+      style={{
+        width: size,
+        height: size,
+        fontSize,
+        backgroundColor: person.color,
+      }}
+    >
+      {person.initial}
+    </span>
   );
 }
 

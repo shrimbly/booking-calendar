@@ -3,6 +3,7 @@ export type Person = {
   first: string;
   initial: string;
   color: string;
+  imageUrl: string | null;
 };
 
 export type Booking = {
@@ -13,12 +14,12 @@ export type Booking = {
 };
 
 export const PEOPLE: Person[] = [
-  { id: "james", first: "James", initial: "J", color: "#3a4e48" },
-  { id: "margaret", first: "Margaret", initial: "M", color: "#8b6f47" },
-  { id: "tom", first: "Tom", initial: "T", color: "#6b7a8b" },
-  { id: "sophie", first: "Sophie", initial: "S", color: "#7a8b7a" },
-  { id: "henry", first: "Henry", initial: "H", color: "#a8553c" },
-  { id: "eliza", first: "Eliza", initial: "E", color: "#8b6b7a" },
+  { id: "james", first: "James", initial: "J", color: "#3a4e48", imageUrl: null },
+  { id: "margaret", first: "Margaret", initial: "M", color: "#8b6f47", imageUrl: null },
+  { id: "tom", first: "Tom", initial: "T", color: "#6b7a8b", imageUrl: null },
+  { id: "sophie", first: "Sophie", initial: "S", color: "#7a8b7a", imageUrl: null },
+  { id: "henry", first: "Henry", initial: "H", color: "#a8553c", imageUrl: null },
+  { id: "eliza", first: "Eliza", initial: "E", color: "#8b6b7a", imageUrl: null },
 ];
 
 export const ME = "james";
