@@ -781,9 +781,23 @@ function ConfirmBar({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 px-3 py-2.5 sm:px-4 sm:py-3">
             <PersonChip person={person} />
             <div className="flex flex-col leading-tight min-w-0">
-              <span className="text-[12px] sm:text-[13px] font-medium truncate">
-                {sameDay ? fmtDay(start) : `${fmtDay(start)} → ${fmtDay(end)}`}
-              </span>
+              {sameDay ? (
+                <span className="text-[12px] sm:text-[13px] font-medium truncate">
+                  {fmtDay(start)}
+                </span>
+              ) : (
+                <>
+                  <span className="hidden sm:block text-[13px] font-medium truncate">
+                    {fmtDay(start)} → {fmtDay(end)}
+                  </span>
+                  <span className="sm:hidden text-[12px] font-medium truncate">
+                    {fmtDay(start)}
+                  </span>
+                  <span className="sm:hidden text-[12px] font-medium truncate text-muted">
+                    → {fmtDay(end)}
+                  </span>
+                </>
+              )}
               <span className="text-[10px] sm:text-[11px] text-muted">
                 {locked
                   ? `${nights} night${nights === 1 ? "" : "s"} as ${person.first}`
