@@ -1,4 +1,4 @@
-import { and, gte, lte, or } from "drizzle-orm";
+import { and, gte, lte } from "drizzle-orm";
 import { db } from "./client";
 import { bookings, people } from "./schema";
 import type { Person, Booking } from "@/lib/data";
@@ -32,20 +32,11 @@ export async function getBookingsForMonth(
     .select()
     .from(bookings)
     .where(
+      // booking range overlaps the padded window if
+      // booking.start <= padEnd AND booking.end >= padStart
       and(
-        // booking overlaps the padded range
-        or(
-          // start_date is in the range
-          and(
-            gte(bookings.startDate, toISO(padStart)),
-            lte(bookings.startDate, toISO(padEnd)),
-          ),
-          // end_date is in the range
-          and(
-            gte(bookings.endDate, toISO(padStart)),
-            lte(bookings.endDate, toISO(padEnd)),
-          ),
-        ),
+        lte(bookings.startDate, toISO(padEnd)),
+        gte(bookings.endDate, toISO(padStart)),
       ),
     );
 

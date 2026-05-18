@@ -166,7 +166,10 @@ export function Calendar({
 
       const firstCellIso = bookingCells[0].iso;
       const lastCellIso = bookingCells[bookingCells.length - 1].iso;
-      bookingRows[0].isBookingStart = firstCellIso === booking.start;
+      // Avatar + name render on the first VISIBLE row of the booking, even if
+      // the booking actually started in the previous month. The rounded-left
+      // cap stays tied to the real booking start.
+      bookingRows[0].isBookingStart = true;
       bookingRows[0].roundLeft = firstCellIso === booking.start;
       bookingRows[bookingRows.length - 1].roundRight =
         lastCellIso === booking.end;
