@@ -21,8 +21,11 @@ export function MonthTitle({
   // Detect the prop change and snapshot the outgoing label.
   useEffect(() => {
     if (month === current) return;
-    setOutgoing(current);
-    setCurrent(month);
+    const t = window.setTimeout(() => {
+      setOutgoing(current);
+      setCurrent(month);
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [month, current]);
 
   // Schedule the outgoing label's removal on its own effect so the

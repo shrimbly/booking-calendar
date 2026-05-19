@@ -9,6 +9,7 @@ import { PinGate } from "@/components/PinGate";
 import { Calendar } from "@/components/Calendar";
 import { MonthSwiper } from "@/components/MonthSwiper";
 import { MonthTitle } from "@/components/MonthTitle";
+import { siteFooterText } from "@/lib/site";
 
 function parseMonthParam(value: string | string[] | undefined): [number, number] {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -112,7 +113,7 @@ export default async function Home({
             className="mr-2 inline-block h-[5px] w-[5px] -translate-y-[1px] rounded-full bg-ink"
             aria-hidden
           />
-          Book the Kuratau bach · built by Willie
+          {siteFooterText}
         </footer>
       </div>
     </main>

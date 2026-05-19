@@ -60,13 +60,6 @@ function rangeOverlapsBookings(
   return false;
 }
 
-function edgeClasses(isStart: boolean, isEnd: boolean): string {
-  if (isStart && isEnd) return "left-1.5 right-1.5 rounded-[6px]";
-  if (isStart) return "left-1.5 right-0 rounded-l-[6px]";
-  if (isEnd) return "left-0 right-1.5 rounded-r-[6px]";
-  return "left-0 right-0";
-}
-
 export function Calendar({
   year,
   month,
@@ -101,7 +94,8 @@ export function Calendar({
   const [photoPending, setPhotoPending] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true);
+    const t = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(t);
   }, []);
   const [optimisticBookings, dispatchOptimistic] = useOptimistic<
     Booking[],
@@ -1005,56 +999,6 @@ export function Calendar({
             document.body,
           )
         : null}
-    </>
-  );
-}
-
-function RibbonAndAvatar({
-  color,
-  initial,
-  name,
-  isStart,
-  isEnd,
-  tentative,
-  delayMs,
-}: {
-  color: string;
-  initial: string;
-  name: string;
-  isStart: boolean;
-  isEnd: boolean;
-  tentative?: boolean;
-  delayMs?: number;
-}) {
-  const delay = tentative && delayMs ? `${delayMs}ms` : undefined;
-  return (
-    <>
-      <div
-        className={[
-          "pointer-events-none absolute bottom-1.5 sm:bottom-2.5 flex h-[20px] sm:h-[26px] items-center overflow-hidden text-[10px] sm:text-[11px] font-medium tracking-[-0.005em]",
-          isStart ? "pl-[30px] sm:pl-[42px] pr-1.5 sm:pr-2" : "px-1.5 sm:px-2",
-          edgeClasses(isStart, isEnd),
-          tentative ? "origin-left opacity-70 animate-ribbon-grow" : "",
-        ].join(" ")}
-        style={{
-          backgroundColor: `color-mix(in srgb, ${color} 22%, var(--color-paper) 78%)`,
-          color: `color-mix(in srgb, ${color} 92%, var(--color-ink) 8%)`,
-          animationDelay: delay,
-        }}
-      >
-        {isStart ? <span className="block truncate">{name}</span> : null}
-      </div>
-      {isStart ? (
-        <div
-          className={[
-            "pointer-events-none absolute bottom-1.5 sm:bottom-2.5 left-1 sm:left-1.5 z-10 grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] place-items-center rounded-[5px] sm:rounded-[6px] text-[11px] sm:text-[12px] font-semibold text-paper",
-            tentative ? "opacity-70 animate-avatar-pop" : "",
-          ].join(" ")}
-          style={{ backgroundColor: color }}
-        >
-          {initial}
-        </div>
-      ) : null}
     </>
   );
 }

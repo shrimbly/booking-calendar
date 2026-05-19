@@ -24,16 +24,22 @@ export function IdentityPicker({
 
   useEffect(() => {
     if (open) {
-      setRenderMenu(true);
+      const renderTimer = window.setTimeout(() => setRenderMenu(true), 0);
       // Wait for the closed-state paint before flipping to visible so
       // the transition has something to interpolate from.
-      const t = window.setTimeout(() => setMenuVisible(true), 0);
-      return () => window.clearTimeout(t);
+      const visibleTimer = window.setTimeout(() => setMenuVisible(true), 16);
+      return () => {
+        window.clearTimeout(renderTimer);
+        window.clearTimeout(visibleTimer);
+      };
     }
     if (!renderMenu) return;
-    setMenuVisible(false);
-    const t = window.setTimeout(() => setRenderMenu(false), 220);
-    return () => window.clearTimeout(t);
+    const hideTimer = window.setTimeout(() => setMenuVisible(false), 0);
+    const unmountTimer = window.setTimeout(() => setRenderMenu(false), 220);
+    return () => {
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(unmountTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
   const [optimisticId, setOptimisticId] = useState(currentId);
@@ -67,9 +73,12 @@ export function IdentityPicker({
   };
 
   useEffect(() => {
-    setOptimisticName(null);
-    setOptimisticColor(null);
-    setOptimisticImageUrl(undefined);
+    const t = window.setTimeout(() => {
+      setOptimisticName(null);
+      setOptimisticColor(null);
+      setOptimisticImageUrl(undefined);
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [baseCurrent.id, baseCurrent.first, baseCurrent.color, baseCurrent.imageUrl]);
 
   useEffect(() => {
@@ -91,7 +100,9 @@ export function IdentityPicker({
   }, [open]);
 
   useEffect(() => {
-    if (!open) setView("profile");
+    if (open) return;
+    const t = window.setTimeout(() => setView("profile"), 0);
+    return () => window.clearTimeout(t);
   }, [open]);
 
   useEffect(() => {

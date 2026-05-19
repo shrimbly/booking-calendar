@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+  <img src="./public/calendar-hero.png" alt="Booking Calendar month view" width="100%">
+</p>
+
+### A tiny, beautiful booking calendar for a family bach, cabin, cottage, lake house, or holiday home.
+
+Simple shared availability for the places families pass between each other.
+No marketplace, no payments, no accounts to administer. Just a private calendar,
+a shared PIN, and enough personality to feel like it belongs to your people.
+
+[MIT licensed](./LICENSE) · built with Next.js, React, Drizzle, Neon, and Vercel Blob
+
+## What It Does
+
+Booking Calendar is a family-first stay planner. People pick who they are, claim
+dates on a large month view, drag or resize their own stays, and add small photos
+from the trip. It is designed for the informal rhythm of a bach: quick to check,
+hard to double-book, and calm enough that everyone can use it.
+
+- Shared PIN gate for lightweight family privacy
+- Identity picker with per-person colors and optional profile photos
+- Month and year navigation with a spacious responsive calendar
+- Overlap prevention on the server, so two stays cannot claim the same dates
+- Edit and delete controls scoped to the person who owns the booking
+- Optional stay photos, thumbnails, and profile images via Vercel Blob
+- Demo data fallback when no database is configured
+- Import helpers for older spreadsheet-based calendars
+
+## Features
+
+| Feature | Description |
+| --- | --- |
+| Private family entry | Protect the calendar with a simple four-digit `FAMILY_PIN`. |
+| Personal booking lanes | Each booking is colored and labeled by family member. |
+| Conflict checks | Server Actions reject overlapping stays before they hit the database. |
+| Photo memories | Upload photos for a specific day within a stay. |
+| Portable branding | Rename the home, footer, metadata, and cookie prefix with env vars. |
+| Database optional locally | Run with seeded in-memory demo data until you connect Neon. |
+| Spreadsheet migration | Use the scripts in `scripts/` to inspect, parse, and import `.xlsx` calendars. |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- npm
+- A Neon Postgres database for real bookings
+- A Vercel Blob store if you want image uploads
+
+### Quick Start
 
 ```bash
+git clone https://github.com/shrimbly/booking-calendar.git
+cd booking-calendar
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+With only `.env.example` copied, the app can render with demo data. Add
+`DATABASE_URL` when you are ready to persist people, bookings, and photos.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+Create `.env.local` in the project root:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+FAMILY_PIN=1234
+DATABASE_URL=postgres://...
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+NEXT_PUBLIC_HOME_NAME="Lake House Calendar"
+NEXT_PUBLIC_HOME_KIND="lake house"
+NEXT_PUBLIC_BUILT_BY="Your Name"
+NEXT_PUBLIC_SITE_DESCRIPTION="Family booking calendar for the lake house."
+NEXT_PUBLIC_FOOTER_TEXT="Book the lake house"
+NEXT_PUBLIC_HOME_SLUG=lake-house
+COOKIE_PREFIX=lake-house
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Only `FAMILY_PIN` is required for the PIN gate. `DATABASE_URL` enables the real
+database-backed calendar. `BLOB_READ_WRITE_TOKEN` enables photo uploads.
 
-## Deploy on Vercel
+## Database Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project uses Drizzle with Neon Postgres.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run db:generate
+npm run db:push
+npm run db:seed
+```
+
+`src/lib/data.ts` contains the starter people and bookings used by both demo
+mode and `npm run db:seed`. Change those records for your own family, then seed
+again.
+
+Useful database commands:
+
+```bash
+npm run db:studio
+npm run db:add-people
+npm run db:import-xlsx -- ./path/to/calendar.xlsx
+```
+
+The spreadsheet importer is intentionally small and opinionated. Treat it as a
+starting point for your old calendar format rather than a universal importer.
+
+## How It Is Organized
+
+| Path | Purpose |
+| --- | --- |
+| `src/app/` | Next.js app route, metadata, and Server Actions. |
+| `src/components/` | Calendar, identity, PIN, photo, and month UI. |
+| `src/db/` | Drizzle schema, client, queries, and seed script. |
+| `src/lib/site.ts` | Reusable site branding and cookie configuration. |
+| `src/lib/data.ts` | Demo and seed data for people and sample bookings. |
+| `scripts/` | Spreadsheet inspection, parsing, import, and maintenance helpers. |
+
+## Scripts
+
+```bash
+npm run dev          # Start the local Next.js dev server
+npm run build        # Build for production
+npm run start        # Run the production build
+npm run lint         # Run ESLint
+npm run db:generate  # Generate Drizzle migrations
+npm run db:push      # Push schema changes to DATABASE_URL
+npm run db:seed      # Seed people and bookings from src/lib/data.ts
+```
+
+## Tech Stack
+
+| Tool | Why |
+| --- | --- |
+| Next.js 16 | App Router, Server Components, Server Actions, and metadata. |
+| React 19 | Client interactions for picking, dragging, uploading, and editing. |
+| Drizzle | Typed schema and query helpers for Postgres. |
+| Neon | Serverless Postgres that deploys cleanly on Vercel. |
+| Vercel Blob | Simple public image storage for profile and stay photos. |
+| Tailwind CSS 4 | Quiet, responsive styling with a small custom palette. |
+
+## Deploying
+
+The smooth path is Vercel:
+
+1. Create a new Vercel project from this repository.
+2. Add Neon Postgres and Vercel Blob storage.
+3. Set the environment variables from `.env.example`.
+4. Run `npm run db:push` against the production database.
+5. Add your people in `src/lib/data.ts`, or with your own script, then seed.
+
+## Contributing
+
+PRs are welcome, especially improvements that make the calendar easier for
+another family to adopt. Keep the app small, private-by-default, and easy to
+understand. For larger changes, open an issue first so the shape can be talked
+through.
+
+## License
+
+MIT. Use it for your own bach, cabin, cottage, or holiday home.

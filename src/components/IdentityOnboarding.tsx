@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { Person } from "@/lib/data";
 import { setIdentity } from "@/app/actions";
+import { siteName } from "@/lib/site";
 
 export function IdentityOnboarding({ people }: { people: Person[] }) {
   const [isPending, startTransition] = useTransition();
@@ -30,7 +31,7 @@ export function IdentityOnboarding({ people }: { people: Person[] }) {
           style={{ animationDelay: "0ms" }}
         >
           <span className="mr-2 inline-block h-[5px] w-[5px] -translate-y-[1px] rounded-full bg-ink" />
-          Kuratau Bach
+          {siteName}
         </div>
         <h1
           className="m-0 mb-2 text-[44px] sm:text-[56px] font-semibold leading-[0.95] tracking-[-0.04em] animate-blur-fade"
