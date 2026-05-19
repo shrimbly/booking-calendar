@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { Person } from "@/lib/data";
 import {
@@ -13,9 +14,11 @@ import { PALETTE } from "@/lib/palette";
 export function IdentityPicker({
   people,
   currentId,
+  showMaryMode = false,
 }: {
   people: Person[];
   currentId: string;
+  showMaryMode?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [renderMenu, setRenderMenu] = useState(false);
@@ -248,6 +251,8 @@ export function IdentityPicker({
               onFileChange={handleFileChange}
               onRemoveImage={handleRemoveImage}
               onOpenSwitch={() => setView("switch")}
+              showMaryMode={showMaryMode}
+              onClose={() => setOpen(false)}
             />
           ) : (
             <SwitchView
@@ -277,6 +282,8 @@ function ProfileView({
   onFileChange,
   onRemoveImage,
   onOpenSwitch,
+  showMaryMode,
+  onClose,
 }: {
   current: Person;
   error: string | null;
@@ -290,6 +297,8 @@ function ProfileView({
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: () => void;
   onOpenSwitch: () => void;
+  showMaryMode: boolean;
+  onClose: () => void;
 }) {
   return (
     <div className="p-5">
@@ -414,6 +423,16 @@ function ProfileView({
       </div>
 
       <div className="-mx-2 border-t border-soft pt-2">
+        {showMaryMode ? (
+          <Link
+            href="/mary"
+            onClick={onClose}
+            className="mb-1 flex w-full items-center justify-between rounded-[8px] px-2 py-2 text-left text-[12px] text-muted transition-colors hover:bg-soft hover:text-ink"
+          >
+            <span>Mary mode</span>
+            <span className="text-[14px] leading-none text-faint">›</span>
+          </Link>
+        ) : null}
         <button
           type="button"
           onClick={onOpenSwitch}

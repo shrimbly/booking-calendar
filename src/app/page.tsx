@@ -52,7 +52,11 @@ export default async function Home({
       <MonthSwiper year={year} month={month} />
       <div className="mx-auto max-w-[1200px]">
         <div className="mb-4 sm:-mb-2 flex items-center justify-end gap-3">
-          <IdentityPicker people={people} currentId={me.id} />
+          <IdentityPicker
+            people={people}
+            currentId={me.id}
+            showMaryMode={isMaryId(me.id)}
+          />
         </div>
 
         <header className="mb-6 sm:mb-6 grid grid-cols-[1fr_auto] items-end gap-4 sm:gap-8">
@@ -118,14 +122,6 @@ export default async function Home({
             aria-hidden
           />
           {siteFooterText}
-          {isMaryId(me.id) ? (
-            <>
-              <span className="mx-2 text-faint">·</span>
-              <Link href="/mary" className="transition-colors hover:text-ink">
-                Mary mode
-              </Link>
-            </>
-          ) : null}
         </footer>
       </div>
     </main>
