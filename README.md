@@ -4,15 +4,15 @@
 
 <div align="center">
 
-### A tiny, beautiful, and low-cost booking calendar for the family lakehouse or holiday home.
-
-Simple shared availability for the places families pass between each other.  
-No marketplace, no payments, no accounts to administer. Just a private calendar,
-a shared PIN, and enough personality to feel like it belongs to your people.
+### A tiny, beautiful, and low-cost booking calendar for the family holiday home.
 
 [MIT licensed](./LICENSE) · built with Next.js, React, Drizzle, Neon, and Vercel Blob
 
 </div>
+
+Simple shared availability for the places families pass between each other.
+No marketplace, no payments, no accounts to administer. Just a private calendar,
+a shared PIN, and enough personality to feel like it belongs to your people.
 
 ## What It Does
 
