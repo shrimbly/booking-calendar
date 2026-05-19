@@ -4,6 +4,10 @@ import { getCurrentMaryId } from "@/lib/mary";
 import { getPaymentConfig } from "@/lib/payment";
 import { MaryChecklist } from "@/components/MaryChecklist";
 
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default async function MaryPage() {
   const maryId = await getCurrentMaryId();
 
@@ -50,7 +54,7 @@ export default async function MaryPage() {
             Calendar
           </Link>
         </div>
-        <MaryChecklist stays={stays} />
+        <MaryChecklist stays={stays} today={todayISO()} />
       </div>
     </main>
   );

@@ -28,8 +28,10 @@ function formatMoney(value: number, currency: string): string {
 
 export function MaryChecklist({
   stays,
+  today,
 }: {
   stays: MaryStay[];
+  today: string;
 }) {
   const [optimistic, setOptimistic] = useState(stays);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,8 @@ export function MaryChecklist({
   }
 
   const openStays = optimistic.filter((stay) => !stay.paymentSettled);
+  const futureStays = openStays.filter((stay) => stay.end >= today);
+  const pastStays = openStays.filter((stay) => stay.end < today);
   const settledStays = optimistic.filter((stay) => stay.paymentSettled);
 
   if (stays.length === 0) {
@@ -73,8 +77,16 @@ export function MaryChecklist({
           {error}
         </p>
       ) : null}
-      <StayRows
-        stays={openStays}
+      <StaySection
+        title="Upcoming stays"
+        stays={futureStays}
+        savingId={savingId}
+        isPending={isPending}
+        onToggle={toggle}
+      />
+      <StaySection
+        title="Past stays"
+        stays={pastStays}
         savingId={savingId}
         isPending={isPending}
         onToggle={toggle}
@@ -113,6 +125,36 @@ export function MaryChecklist({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function StaySection({
+  title,
+  stays,
+  savingId,
+  isPending,
+  onToggle,
+}: {
+  title: string;
+  stays: MaryStay[];
+  savingId: string | null;
+  isPending: boolean;
+  onToggle: (id: string, settled: boolean) => void;
+}) {
+  if (stays.length === 0) return null;
+
+  return (
+    <section className="border-b border-soft last:border-b-0">
+      <div className="pt-4 pb-1 text-[10px] font-medium uppercase tracking-[0.14em] text-faint">
+        {title}
+      </div>
+      <StayRows
+        stays={stays}
+        savingId={savingId}
+        isPending={isPending}
+        onToggle={onToggle}
+      />
+    </section>
   );
 }
 
