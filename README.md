@@ -12,40 +12,30 @@
 
 <br>
 
-Simple shared availability for the places families pass between each other.
-No marketplace, no payments, no accounts to administer. Just a private calendar,
-a shared PIN, and enough personality to feel like it belongs to your people.
+This is a small app for the very specific, very real problem of sharing a family
+holiday home without turning the family chat into a booking tribunal. It is a
+private calendar with a shared PIN, optional stay costs, bank transfer details,
+photos from the trip, and just enough ceremony to keep everyone honest.
 
 ## What It Does
 
-Book the lakehouse is a family-first stay planner. People pick who they are, claim
-dates on a large month view, drag or resize their own stays, and add small photos
-from the trip. It is designed for the informal rhythm of a shared home: quick to check,
-hard to double-book, and calm enough that everyone can use it.
+Book the lakehouse is for families who have a lakehouse, bach, cabin, cottage,
+or other beloved place that people take turns using. Everyone picks who they are,
+books their dates, and can see at a glance who is staying when.
 
-- Shared PIN gate for lightweight family privacy
-- Identity picker with per-person colors and optional profile photos
-- Month and year navigation with a spacious responsive calendar
-- Overlap prevention on the server, so two stays cannot claim the same dates
-- Edit and delete controls scoped to the person who owns the booking
-- Optional stay photos, thumbnails, and profile images via Vercel Blob
-- Demo data fallback when no database is configured
-- Import helpers for older spreadsheet-based calendars
-- Coding-agent friendly docs in `AGENTS.md` and `CLAUDE.md`
+- Pick your family identity, then claim dates on a spacious month calendar.
+- Avoid awkward double-bookings with server-side conflict checks.
+- Edit or delete your own stays without giving everyone full admin powers.
+- Add optional stay costs, bank account details, and a transfer prompt before booking.
+- Use Mary mode, the admin area where trusted Marys can check off paid stays in a persisted checklist.
+- Upload profile photos and stay photos when Vercel Blob is configured.
+- Run locally with demo data before connecting Neon Postgres.
+- Rename the place, people, footer, PIN, colors, and cookie prefix for your own family.
+- Import older spreadsheet calendars with the helper scripts in `scripts/`.
+- Hand the code to another coding agent with `AGENTS.md` and `CLAUDE.md` already in place.
 
-## Features
-
-| Feature | Description |
-| --- | --- |
-| Private family entry | Protect the calendar with a simple four-digit `FAMILY_PIN`. |
-| Personal booking lanes | Each booking is colored and labeled by family member. |
-| Conflict checks | Server Actions reject overlapping stays before they hit the database. |
-| Optional stay costs | Show a payment prompt with total cost and bank details before a stay is confirmed. |
-| Mary mode | Let trusted Marys check off stay payments in a small persisted admin view. |
-| Photo memories | Upload photos for a specific day within a stay. |
-| Portable branding | Rename the home, footer, metadata, and cookie prefix with env vars. |
-| Database optional locally | Run with seeded in-memory demo data until you connect Neon. |
-| Spreadsheet migration | Use the scripts in `scripts/` to inspect, parse, and import `.xlsx` calendars. |
+Mary mode is named for my aunt Mary, who embodies the idea of an admin far
+better than the word "admin" ever could.
 
 ## Simple Setup
 
@@ -58,16 +48,12 @@ The easiest production setup is Vercel + Neon:
 5. Add your app-specific settings from `.env.example`, especially `FAMILY_PIN` and the `NEXT_PUBLIC_*` display text.
 6. Run `npm run db:push` once, then `npm run db:seed` to add starter people and sample bookings.
 
-## Getting Started
+That is the whole shape of it: Vercel runs the app, Neon keeps the calendar, and
+Blob stores the nice little photos.
 
-### Prerequisites
+## Local Development
 
-- Node.js 20+
-- npm
-- A Neon Postgres database for real bookings
-- A Vercel Blob store if you want image uploads
-
-### Quick Start
+For tinkering before deployment:
 
 ```bash
 git clone https://github.com/shrimbly/book-the-lakehouse.git
@@ -80,7 +66,7 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000).
 
 With only `.env.example` copied, the app can render with demo data. Add
-`DATABASE_URL` when you are ready to persist people, bookings, and photos.
+`DATABASE_URL` when you are ready for real bookings to stick around.
 
 ## Environment Variables
 
@@ -109,11 +95,11 @@ NEXT_PUBLIC_HOME_SLUG=book-the-lakehouse
 COOKIE_PREFIX=book-the-lakehouse
 ```
 
-Only `FAMILY_PIN` is required for the PIN gate. `DATABASE_URL` enables the real
-database-backed calendar. `BLOB_READ_WRITE_TOKEN` enables photo uploads.
-`BOOKING_COST_PER_NIGHT` enables the optional payment prompt for new bookings.
-`MARY_IDS` is a comma-separated list of person IDs who can open `/mary` and
-check off paid stays.
+Only `FAMILY_PIN` is needed for the PIN gate. `DATABASE_URL` enables the real
+database-backed calendar. `BLOB_READ_WRITE_TOKEN` enables photos.
+`BOOKING_COST_PER_NIGHT` turns on the cost and bank-transfer prompt.
+`MARY_IDS` is a comma-separated list of person IDs for Marys, the admin users
+who can open `/mary` and check off paid stays.
 
 ## Database Setup
 
@@ -126,11 +112,10 @@ npm run db:seed
 ```
 
 `src/lib/data.ts` contains the starter people and bookings used by both demo
-mode and `npm run db:seed`. Change those records for your own family, then seed
-again.
+mode and `npm run db:seed`. Swap them out for your own family, then seed again.
 
 Run `npm run db:push` after pulling changes that add Mary mode, because bookings
-now include a persisted `payment_settled` checklist field.
+include a persisted `payment_settled` checklist field.
 
 Useful database commands:
 
@@ -141,7 +126,7 @@ npm run db:import-xlsx -- ./path/to/calendar.xlsx
 ```
 
 The spreadsheet importer is intentionally small and opinionated. Treat it as a
-starting point for your old calendar format rather than a universal importer.
+starting point for your old calendar format, not a universal law of spreadsheets.
 
 ## How It Is Organized
 
@@ -178,23 +163,12 @@ npm run db:seed      # Seed people and bookings from src/lib/data.ts
 | Vercel Blob | Simple public image storage for profile and stay photos. |
 | Tailwind CSS 4 | Quiet, responsive styling with a small custom palette. |
 
-## Deploying
-
-The smooth path is Vercel:
-
-1. Create a new Vercel project from this repository.
-2. Add Neon Postgres and Vercel Blob storage.
-3. Set the environment variables from `.env.example`.
-4. Run `npm run db:push` against the production database.
-5. Add your people in `src/lib/data.ts`, or with your own script, then seed.
-
 ## Contributing
 
 PRs are welcome, especially improvements that make the calendar easier for
-another family to adopt. Keep the app small, private-by-default, and easy to
-understand. For larger changes, open an issue first so the shape can be talked
-through.
+another family to adopt. Keep it small, private-by-default, and friendly to
+people who just want to book a weekend away without learning a new system.
 
 ## License
 
-MIT. Use it for your own bach, cabin, cottage, or holiday home.
+MIT. Use it for your own bach, cabin, cottage, lakehouse, or holiday home.
