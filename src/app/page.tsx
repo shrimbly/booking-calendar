@@ -9,7 +9,7 @@ import { PinGate } from "@/components/PinGate";
 import { Calendar } from "@/components/Calendar";
 import { MonthSwiper } from "@/components/MonthSwiper";
 import { MonthTitle } from "@/components/MonthTitle";
-import { siteFooterText } from "@/lib/site";
+import { siteFooterText, siteRepoUrl } from "@/lib/site";
 import { getPaymentConfig } from "@/lib/payment";
 import { isMaryId } from "@/lib/mary";
 
@@ -42,6 +42,10 @@ export default async function Home({
   const identityId = await getCurrentIdentityId();
   const me = identityId ? people.find((p) => p.id === identityId) : undefined;
   const paymentConfig = getPaymentConfig();
+  const footerLinkText = "Book the lakehouse";
+  const footerSuffix = siteFooterText.startsWith(footerLinkText)
+    ? siteFooterText.slice(footerLinkText.length).trimStart()
+    : "";
 
   if (!me) {
     return <IdentityOnboarding people={people} />;
@@ -51,36 +55,35 @@ export default async function Home({
     <main className="flex-1 px-4 sm:px-10 pt-4 sm:pt-8 pb-24 sm:pb-20">
       <MonthSwiper year={year} month={month} />
       <div className="mx-auto max-w-[1200px]">
-        <div className="mb-4 sm:-mb-2 flex items-center justify-end gap-3">
-          <IdentityPicker
-            people={people}
-            currentId={me.id}
-            showMaryMode={isMaryId(me.id)}
-          />
-        </div>
-
-        <header className="mb-6 sm:mb-6 grid grid-cols-[1fr_auto] items-end gap-4 sm:gap-8">
+        <header className="mb-6 sm:mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:gap-8">
           <MonthTitle
             month={month}
             months={MONTH_NAMES}
-            className="text-[44px] sm:text-[clamp(60px,9vw,140px)] font-semibold leading-[0.88] tracking-[-0.05em] sm:tracking-[-0.06em]"
+            className="text-[52px] font-semibold leading-[0.88] tracking-[-0.05em] sm:tracking-[-0.06em]"
           />
-          <div className="inline-flex items-center gap-2.5 sm:gap-3.5 pb-1 sm:pb-3.5">
-            <YearArrow
-              href={monthHref(year - 1, month)}
-              label="previous year"
-            >
-              ‹
-            </YearArrow>
-            <span
-              key={`year-${year}`}
-              className="text-[18px] sm:text-[22px] font-medium tabular-nums tracking-[-0.01em] animate-blur-fade"
-            >
-              {year}
-            </span>
-            <YearArrow href={monthHref(year + 1, month)} label="next year">
-              ›
-            </YearArrow>
+          <div className="flex flex-col items-end gap-2 sm:gap-6">
+            <IdentityPicker
+              people={people}
+              currentId={me.id}
+              showMaryMode={isMaryId(me.id)}
+            />
+            <div className="inline-flex items-center gap-2.5 sm:gap-3.5 pb-0 sm:pb-1.5">
+              <YearArrow
+                href={monthHref(year - 1, month)}
+                label="previous year"
+              >
+                ‹
+              </YearArrow>
+              <span
+                key={`year-${year}`}
+                className="text-[18px] sm:text-[22px] font-medium tabular-nums tracking-[-0.01em] animate-blur-fade"
+              >
+                {year}
+              </span>
+              <YearArrow href={monthHref(year + 1, month)} label="next year">
+                ›
+              </YearArrow>
+            </div>
           </div>
         </header>
 
@@ -121,7 +124,15 @@ export default async function Home({
             className="mr-2 inline-block h-[5px] w-[5px] -translate-y-[1px] rounded-full bg-ink"
             aria-hidden
           />
-          {siteFooterText}
+          <Link
+            href={siteRepoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-ink"
+          >
+            {footerLinkText}
+          </Link>
+          {footerSuffix ? <span className="ml-1">{footerSuffix}</span> : null}
         </footer>
       </div>
     </main>

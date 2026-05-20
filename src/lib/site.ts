@@ -1,6 +1,7 @@
 const fallbackName = "Book the lakehouse";
 const fallbackHomeKind = "lakehouse";
 const fallbackBuilderName = "Willie";
+const fallbackRepoUrl = "https://github.com/shrimbly/book-the-lakehouse";
 
 function fromEnv(value: string | undefined, fallback: string): string {
   const trimmed = value?.trim();
@@ -38,6 +39,11 @@ export const siteDescription = fromEnv(
 export const siteFooterText = fromEnv(
   process.env.NEXT_PUBLIC_FOOTER_TEXT,
   `Book the ${siteHomeKind} · built by ${siteBuilderName}`,
+);
+
+export const siteRepoUrl = fromEnv(
+  process.env.NEXT_PUBLIC_REPO_URL,
+  fallbackRepoUrl,
 );
 
 export const siteCookiePrefix =
