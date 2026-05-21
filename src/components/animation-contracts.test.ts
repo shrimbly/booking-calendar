@@ -202,6 +202,9 @@ describe("animation contracts", () => {
     expect(bookingBars).toContain("booking-confirm-meta-layer");
     expect(bookingBars).toContain("locked ? \"is-visible\" : \"is-hidden\"");
     expect(cssBlock(".booking-confirm-card")).toContain(
+      "height 520ms cubic-bezier(0.16, 0.84, 0.44, 1)",
+    );
+    expect(cssBlock(".booking-confirm-card")).toContain(
       "transform 520ms cubic-bezier(0.16, 0.84, 0.44, 1)",
     );
     expect(cssBlock(".booking-confirm-card.is-locked")).toContain(
@@ -218,6 +221,20 @@ describe("animation contracts", () => {
     );
     expect(cssBlock(".booking-confirm-meta-layer.is-hidden")).toContain(
       "filter: blur(5px)",
+    );
+    expect(bookingBars).toContain("booking-payment-content");
+    expect(bookingBars).toContain('"--booking-flow-height"');
+    expect(cssBlock(".booking-confirm-card.is-payment")).toContain(
+      "translateY(-0.75rem) scale(1)",
+    );
+    expect(keyframes("booking-payment-content-in")).toContain("filter: blur(8px)");
+    expect(bookingBars).toContain("booking-action-card");
+    expect(bookingBars).toContain("booking-action-layer");
+    expect(cssBlock(".booking-action-card")).toContain(
+      "height 420ms cubic-bezier(0.16, 0.84, 0.44, 1)",
+    );
+    expect(cssBlock(".booking-action-card.is-deleting")).toContain(
+      "translateY(-0.25rem) scale(1.015)",
     );
   });
 

@@ -206,16 +206,27 @@ main.month-gesture-preview {
 }
 
 .booking-confirm-card {
+  height: var(--booking-flow-height, auto);
+  overflow: hidden;
   transform: translateY(0) scale(1);
   transition:
+    height 520ms cubic-bezier(0.16, 0.84, 0.44, 1),
     transform 520ms cubic-bezier(0.16, 0.84, 0.44, 1),
     border-color 260ms cubic-bezier(0.16, 0.84, 0.44, 1),
     box-shadow 260ms cubic-bezier(0.16, 0.84, 0.44, 1);
-  will-change: transform;
+  will-change: height, transform;
 }
 
 .booking-confirm-card.is-locked {
   transform: translateY(-0.75rem) scale(1.035);
+}
+
+.booking-confirm-card.is-payment {
+  transform: translateY(-0.75rem) scale(1);
+}
+
+.booking-payment-content {
+  animation: booking-payment-content-in 380ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
 }
 
 .booking-confirm-meta {
@@ -249,6 +260,69 @@ main.month-gesture-preview {
 
 .booking-confirm-card.is-locked .booking-confirm-meta-layer.is-hidden {
   transform: translateY(-4px);
+}
+
+.booking-action-card {
+  height: var(--booking-flow-height, auto);
+  overflow: hidden;
+  transform: translateY(0) scale(1);
+  transition:
+    height 420ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    transform 420ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    border-color 260ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    box-shadow 260ms cubic-bezier(0.16, 0.84, 0.44, 1);
+  will-change: height, transform;
+}
+
+.booking-action-card.is-deleting {
+  transform: translateY(-0.25rem) scale(1.015);
+}
+
+.booking-action-title,
+.booking-action-meta {
+  display: grid;
+  min-width: 0;
+}
+
+.booking-action-layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition:
+    opacity 300ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    filter 300ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    transform 300ms cubic-bezier(0.16, 0.84, 0.44, 1);
+  will-change: opacity, filter, transform;
+}
+
+.booking-action-layer.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.booking-action-layer.is-hidden {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+.booking-action-card.is-deleting .booking-action-layer.is-hidden {
+  transform: translateY(-4px);
+}
+
+@keyframes booking-payment-content-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
 }
 
 .booking-edit-panel {

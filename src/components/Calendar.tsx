@@ -8,8 +8,6 @@ import type { PaymentConfig } from "@/lib/payment";
 import {
   ChoiceBar,
   ConfirmBar,
-  DeleteBar,
-  PaymentDialog,
 } from "./calendar/Overlays";
 import { CalendarGrid } from "./calendar/CalendarGrid";
 import {
@@ -161,6 +159,7 @@ export function Calendar({
     const id = deletingId;
     setServerError(null);
     setDeletingId(null);
+    setActioningId(null);
     const startExitTimer = window.setTimeout(() => {
       setExitingBookingIds((prev) => new Set(prev).add(id));
       const removeTimer = window.setTimeout(() => {
@@ -228,41 +227,41 @@ export function Calendar({
       {mounted
         ? createPortal(
             <>
-              {pickStart ? (
+              {pickStart || paymentReview ? (
                 <ConfirmBar
-                  start={pickStart}
-                  end={pickEnd ?? pickStart}
-                  locked={pickEnd != null}
+                  start={pickStart ?? paymentReview?.start ?? ""}
+                  end={pickEnd ?? pickStart ?? paymentReview?.end ?? ""}
+                  locked={pickEnd != null || paymentReview != null}
                   person={me}
-                  conflict={conflict}
-                  onCancel={cancel}
-                  onConfirm={confirm}
+                  conflict={paymentReview ? null : conflict}
+                  onCancel={paymentReview ? () => setPaymentReview(null) : cancel}
+                  onConfirm={paymentReview ? () => setPaymentReview(null) : confirm}
                   onAdjustStart={adjustStart}
                   onAdjustEnd={adjustEnd}
                   canAdjustStart={canAdjustStart}
                   canAdjustEnd={canAdjustEnd}
                   pending={isBookingPending}
                   mode={editingId ? "edit" : "create"}
-                  hasChanges={selectionHasChanges}
+                  hasChanges={paymentReview ? true : selectionHasChanges}
+                  payment={paymentConfig}
+                  paymentMode={paymentReview != null}
+                  onPaymentConfirm={() => setPaymentReview(null)}
                 />
-              ) : actioningId ? (
+              ) : actioningId || deletingId ? (
                 <ChoiceBar
-                  booking={actioningBooking}
+                  booking={actioningBooking ?? deletingBooking}
                   person={me}
-                  onCancel={() => setActioningId(null)}
+                  deleting={deletingId != null}
+                  pending={isBookingPending}
+                  onCancel={() => {
+                    setActioningId(null);
+                    setDeletingId(null);
+                  }}
                   onEdit={() => editBooking(actioningBooking)}
                   onDelete={() => {
                     setDeletingId(actioningId);
-                    setActioningId(null);
                   }}
-                />
-              ) : deletingId ? (
-                <DeleteBar
-                  booking={deletingBooking}
-                  person={me}
-                  onCancel={() => setDeletingId(null)}
-                  onDelete={confirmDelete}
-                  pending={isBookingPending}
+                  onConfirmDelete={confirmDelete}
                 />
               ) : null}
 
@@ -277,17 +276,6 @@ export function Calendar({
                 onUpload={handleUploadPhoto}
                 onDelete={handleDeletePhoto}
               />
-
-              {paymentReview && paymentConfig ? (
-                <PaymentDialog
-                  start={paymentReview.start}
-                  end={paymentReview.end}
-                  person={me}
-                  payment={paymentConfig}
-                  onCancel={() => setPaymentReview(null)}
-                  onConfirm={() => setPaymentReview(null)}
-                />
-              ) : null}
 
               <ServerErrorToast
                 message={serverError}
