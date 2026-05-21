@@ -42,9 +42,11 @@ export function AvatarPhotoEditor({
   const [isCropping, setIsCropping] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [removeArmedFor, setRemoveArmedFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const closeTimerRef = useRef<number | null>(null);
+  const lastPointerTypeRef = useRef<string | null>(null);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -57,6 +59,7 @@ export function AvatarPhotoEditor({
   const isBusy = disabled || isSaving || isCropping;
   const shownImageUrl = draftUrl ?? imageUrl;
   const isAddPlaceholder = !shownImageUrl && initial === "+";
+  const showRemoveConfirm = !!shownImageUrl && removeArmedFor === shownImageUrl;
   const previewFrame = sourceSize
     ? calculateProfilePreviewFrame(sourceSize.width, sourceSize.height, {
         zoom,
@@ -140,6 +143,23 @@ export function AvatarPhotoEditor({
       return;
     }
     onRemove?.();
+  }
+
+  function handleAvatarClick() {
+    if (!shownImageUrl) {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    if (
+      lastPointerTypeRef.current === "touch" &&
+      removeArmedFor !== shownImageUrl
+    ) {
+      setRemoveArmedFor(shownImageUrl);
+      return;
+    }
+
+    removePhoto();
   }
 
   function closeDialog() {
@@ -228,13 +248,19 @@ export function AvatarPhotoEditor({
         <button
           type="button"
           disabled={isBusy}
-          onClick={() => {
-            if (shownImageUrl) removePhoto();
-            else fileInputRef.current?.click();
+          onPointerDown={(event) => {
+            lastPointerTypeRef.current = event.pointerType;
           }}
+          onBlur={() => setRemoveArmedFor(null)}
+          onClick={handleAvatarClick}
           aria-label={
-            shownImageUrl ? "Remove profile photo" : "Add profile photo"
+            showRemoveConfirm
+              ? "Tap again to remove profile photo"
+              : shownImageUrl
+                ? "Remove profile photo"
+                : "Add profile photo"
           }
+          aria-pressed={shownImageUrl ? showRemoveConfirm : undefined}
           className="group relative grid shrink-0 place-items-center overflow-hidden rounded-full border border-rule bg-paper shadow-control transition-colors duration-200 hover:bg-soft focus:outline-none focus-visible:bg-soft disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             width: avatarSize,
@@ -250,7 +276,12 @@ export function AvatarPhotoEditor({
             imageUrl={shownImageUrl}
           />
           {shownImageUrl ? (
-            <span className="absolute inset-0 bg-paper/72 opacity-0 backdrop-blur-[1px] transition-opacity duration-[420ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] group-hover:opacity-100 group-focus-visible:opacity-100" />
+            <span
+              className={[
+                "absolute inset-0 bg-paper/72 backdrop-blur-[1px] transition-opacity duration-[420ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] group-hover:opacity-100 group-focus-visible:opacity-100",
+                showRemoveConfirm ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            />
           ) : null}
           {!shownImageUrl && !isAddPlaceholder ? (
             <span className="absolute inset-0 bg-soft opacity-0 transition-opacity duration-[420ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] group-hover:opacity-100 group-focus-visible:opacity-100" />
@@ -270,7 +301,12 @@ export function AvatarPhotoEditor({
             <span
               className={
                 shownImageUrl
-                  ? "text-[11px] font-medium leading-none opacity-0 [filter:blur(10px)] transition-[opacity,filter] duration-[420ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] group-hover:opacity-100 group-hover:[filter:blur(0)] group-focus-visible:opacity-100 group-focus-visible:[filter:blur(0)]"
+                  ? [
+                      "text-[11px] font-medium leading-none [filter:blur(10px)] transition-[opacity,filter] duration-[420ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] group-hover:opacity-100 group-hover:[filter:blur(0)] group-focus-visible:opacity-100 group-focus-visible:[filter:blur(0)]",
+                      showRemoveConfirm
+                        ? "opacity-100 [filter:blur(0)]"
+                        : "opacity-0",
+                    ].join(" ")
                   : "text-[11px] font-medium leading-none opacity-0 [filter:blur(10px)] transition-[opacity,filter] duration-[420ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] group-hover:opacity-100 group-hover:[filter:blur(0)] group-focus-visible:opacity-100 group-focus-visible:[filter:blur(0)]"
               }
             >

@@ -93,12 +93,12 @@ export function ConfirmBar({
               : "pointer-events-none translate-y-0 scale-100",
           ].join(" ")}
         >
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 px-3 py-2.5 sm:px-4 sm:py-3">
+          <div className="flex items-center gap-x-2.5 gap-y-2 px-3 py-3 sm:gap-x-4 sm:px-4 sm:py-3">
             <PersonChip person={person} />
-            <div className="flex flex-col leading-tight min-w-0">
+            <div className="flex min-w-0 flex-1 flex-col leading-tight">
               <StayDateText start={start} end={end} />
               {!locked ? (
-                <span className="text-[10px] sm:text-[11px] text-muted">
+                <span className="truncate text-[11px] text-muted">
                   pick an end date · {person.first}
                 </span>
               ) : null}
@@ -114,7 +114,7 @@ export function ConfirmBar({
                   onClick={() => setEditing((value) => !value)}
                   aria-expanded={editing}
                   className={[
-                    "text-[12px] sm:text-[13px] font-medium underline-offset-4 transition-colors hover:underline focus-visible:underline focus-visible:outline-none",
+                    "text-[13px] font-medium underline-offset-4 transition-colors hover:underline focus-visible:underline focus-visible:outline-none",
                     editing
                       ? "text-ink underline decoration-ink"
                       : "text-muted hover:text-ink",
@@ -125,18 +125,18 @@ export function ConfirmBar({
               </>
             ) : null}
             {conflict ? (
-              <div className="basis-full sm:basis-auto sm:ml-1 sm:max-w-[160px] text-[10px] sm:text-[11px] italic text-faint">
+              <div className="hidden text-[11px] italic text-faint sm:ml-1 sm:block sm:max-w-[160px]">
                 overlaps {conflict}&rsquo;s stay
               </div>
             ) : null}
-            <div className="ml-auto flex items-center gap-1">
+            <div className="ml-auto flex shrink-0 items-center gap-1">
               <button
                 type="button"
                 onClick={() => closeWith(onConfirm)}
                 disabled={
                   !locked || !!conflict || pending || !hasChanges || isClosing
                 }
-                className="pointer-events-auto whitespace-nowrap rounded-full bg-ink px-3 sm:px-4 py-1.5 text-[11px] sm:text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
+                className="pointer-events-auto whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25 sm:px-4"
               >
                 {confirmLabel}
               </button>
@@ -239,19 +239,19 @@ export function ChoiceBar({
     <>
       <OverlayBackdrop onPointerDown={close} isClosing={isClosing} />
       <BottomOverlayShell isClosing={isClosing}>
-        <div className="pointer-events-auto flex w-full flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-card max-w-[calc(100vw-1.5rem)] sm:w-[480px]">
+        <div className="pointer-events-auto flex w-full items-center gap-x-2.5 gap-y-2 rounded-[12px] border border-rule bg-paper px-3 py-3 shadow-card max-w-[calc(100vw-1.5rem)] sm:w-[480px] sm:gap-x-4 sm:rounded-[14px] sm:px-4 sm:py-3">
           <PersonChip person={person} />
-          <div className="flex flex-col leading-tight min-w-0">
+          <div className="flex min-w-0 flex-1 flex-col leading-tight">
             <StayDateText start={booking.start} end={booking.end} />
-            <span className="text-[10px] sm:text-[11px] text-muted">
+            <span className="truncate text-[11px] text-muted">
               your stay · {person.first}
             </span>
           </div>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <button
               type="button"
               onClick={() => closeWith(onDelete)}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-rule px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] font-medium text-ink transition-colors hover:border-ink"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-rule px-2.5 py-1.5 text-[12px] font-medium text-ink transition-colors hover:border-ink sm:px-3"
             >
               <Trash2 size={12} strokeWidth={2.25} />
               Delete
@@ -259,7 +259,7 @@ export function ChoiceBar({
             <button
               type="button"
               onClick={() => closeWith(onEdit)}
-              className="whitespace-nowrap px-1 py-1.5 text-[12px] sm:text-[13px] font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline focus-visible:outline-none"
+              className="whitespace-nowrap px-1 py-1.5 text-[13px] font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline focus-visible:outline-none"
             >
               Edit
             </button>
@@ -294,13 +294,13 @@ export function DeleteBar({
     <>
       <OverlayBackdrop onPointerDown={close} isClosing={isClosing} />
       <BottomOverlayShell isClosing={isClosing}>
-        <div className="pointer-events-auto flex w-full flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4 rounded-[12px] sm:rounded-[14px] border border-rule bg-paper px-3 py-2.5 sm:px-4 sm:py-3 shadow-card max-w-[calc(100vw-1.5rem)] sm:w-[480px]">
+        <div className="pointer-events-auto flex w-full items-center gap-x-2.5 gap-y-2 rounded-[12px] border border-rule bg-paper px-3 py-3 shadow-card max-w-[calc(100vw-1.5rem)] sm:w-[480px] sm:gap-x-4 sm:rounded-[14px] sm:px-4 sm:py-3">
           <PersonChip person={person} />
           <div className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="text-[12px] sm:text-[13px] font-medium">
+            <span className="truncate text-[13px] font-medium">
               Remove this stay?
             </span>
-            <span className="text-[10px] sm:text-[11px] text-muted">
+            <span className="truncate text-[11px] text-muted">
               {sameDay
                 ? fmtDay(booking.start)
                 : `${fmtDay(booking.start)} → ${fmtDay(booking.end)}`}
@@ -313,7 +313,7 @@ export function DeleteBar({
               type="button"
               onClick={() => closeWith(onDelete)}
               disabled={pending || isClosing}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-3 sm:px-4 py-1.5 text-[11px] sm:text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25 sm:px-4"
             >
               {!pending ? <Trash2 size={12} strokeWidth={2.25} /> : null}
               {pending ? "Removing…" : "Delete"}
@@ -331,7 +331,7 @@ function StayDateText({ start, end }: { start: string; end: string }) {
 
   if (sameDay) {
     return (
-      <span className="text-[12px] sm:text-[13px] font-medium truncate">
+      <span className="truncate whitespace-nowrap text-[clamp(12px,3.55vw,14px)] font-medium sm:text-[13px]">
         {fmtDay(start)}
       </span>
     );
@@ -342,14 +342,16 @@ function StayDateText({ start, end }: { start: string; end: string }) {
       <span className="hidden sm:block text-[13px] font-medium truncate">
         {fmtDay(start)}, to {fmtDay(end)}
       </span>
-      <span className="sm:hidden text-[12px] font-medium truncate">
-        {fmtDay(start)},
-      </span>
-      <span className="sm:hidden text-[12px] font-medium truncate">
-        to {fmtDay(end)}
+      <span className="truncate whitespace-nowrap text-[clamp(12px,3.55vw,14px)] font-medium sm:hidden">
+        {fmtCompactDay(start)} - {fmtCompactDay(end)}
       </span>
     </>
   );
+}
+
+function fmtCompactDay(iso: string): string {
+  const date = new Date(`${iso}T00:00:00`);
+  return `${date.getDate()} ${date.toLocaleString("en", { month: "short" })}`;
 }
 
 function NudgeRow({
