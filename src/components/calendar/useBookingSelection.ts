@@ -152,13 +152,15 @@ export function useBookingSelection({
   );
   const exitingPreviewAvatar = exitingPreviewRows[0] ?? null;
 
-  const clearSelection = useCallback(() => {
+  const clearSelection = useCallback((options?: { keepPaymentReview?: boolean }) => {
     setPickStart(null);
     setPickEnd(null);
     setHovered(null);
     setIsDragging(false);
     setEditingId(null);
-    setPaymentReview(null);
+    if (!options?.keepPaymentReview) {
+      setPaymentReview(null);
+    }
     setResolvedNextRows(0);
     lastRowRevealAt.current = -ROW_REVEAL_DELAY_MS;
     dragStartPoint.current = null;
@@ -246,9 +248,10 @@ export function useBookingSelection({
     const start = pickStart;
     const end = pickEnd;
     const id = editingId;
-    clearSelection();
+    const shouldReviewPayment = !id && hasPaymentConfig;
+    clearSelection({ keepPaymentReview: shouldReviewPayment });
     onSave(start, end, id);
-    if (!id && hasPaymentConfig) {
+    if (shouldReviewPayment) {
       setPaymentReview({ start, end });
     }
   }

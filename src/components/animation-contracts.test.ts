@@ -223,7 +223,17 @@ describe("animation contracts", () => {
       "filter: blur(5px)",
     );
     expect(bookingBars).toContain("booking-payment-content");
+    expect(bookingBars).toContain("const showPaymentDetails = paymentMode && !!payment");
+    expect(bookingBars).toContain("const shouldMorphToPayment =");
+    expect(bookingBars).toContain("function handleConfirm()");
+    expect(bookingBars).toContain("if (shouldMorphToPayment)");
+    expect(bookingBars).toContain("onConfirm();");
     expect(bookingBars).toContain('"--booking-flow-height"');
+    expect(calendar).toContain(
+      "const canShowPaymentReview = paymentReview != null && paymentConfig != null",
+    );
+    expect(calendar).toContain("if (paymentReview && !paymentConfig)");
+    expect(calendar).toContain("paymentMode={canShowPaymentReview}");
     expect(cssBlock(".booking-confirm-card.is-payment")).toContain(
       "translateY(-0.75rem) scale(1)",
     );

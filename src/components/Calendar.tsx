@@ -142,6 +142,13 @@ export function Calendar({
   const selectionHasChanges = editingBooking
     ? editingBooking.start !== pickStart || editingBooking.end !== pickEnd
     : true;
+  const canShowPaymentReview = paymentReview != null && paymentConfig != null;
+
+  useEffect(() => {
+    if (paymentReview && !paymentConfig) {
+      setPaymentReview(null);
+    }
+  }, [paymentReview, paymentConfig, setPaymentReview]);
 
   useEffect(() => {
     if (pickStart) {
@@ -227,24 +234,28 @@ export function Calendar({
       {mounted
         ? createPortal(
             <>
-              {pickStart || paymentReview ? (
+              {pickStart || canShowPaymentReview ? (
                 <ConfirmBar
                   start={pickStart ?? paymentReview?.start ?? ""}
                   end={pickEnd ?? pickStart ?? paymentReview?.end ?? ""}
-                  locked={pickEnd != null || paymentReview != null}
+                  locked={pickEnd != null || canShowPaymentReview}
                   person={me}
-                  conflict={paymentReview ? null : conflict}
-                  onCancel={paymentReview ? () => setPaymentReview(null) : cancel}
-                  onConfirm={paymentReview ? () => setPaymentReview(null) : confirm}
+                  conflict={canShowPaymentReview ? null : conflict}
+                  onCancel={
+                    canShowPaymentReview ? () => setPaymentReview(null) : cancel
+                  }
+                  onConfirm={
+                    canShowPaymentReview ? () => setPaymentReview(null) : confirm
+                  }
                   onAdjustStart={adjustStart}
                   onAdjustEnd={adjustEnd}
                   canAdjustStart={canAdjustStart}
                   canAdjustEnd={canAdjustEnd}
                   pending={isBookingPending}
                   mode={editingId ? "edit" : "create"}
-                  hasChanges={paymentReview ? true : selectionHasChanges}
+                  hasChanges={canShowPaymentReview ? true : selectionHasChanges}
                   payment={paymentConfig}
-                  paymentMode={paymentReview != null}
+                  paymentMode={canShowPaymentReview}
                   onPaymentConfirm={() => setPaymentReview(null)}
                 />
               ) : actioningId || deletingId ? (

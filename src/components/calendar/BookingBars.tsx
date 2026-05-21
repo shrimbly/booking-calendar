@@ -71,7 +71,10 @@ export function ConfirmBar({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const { isClosing, close, closeWith } = useAnimatedClose(onCancel);
-  const canEdit = locked && !paymentMode;
+  const showPaymentDetails = paymentMode && !!payment;
+  const shouldMorphToPayment =
+    mode === "create" && locked && !!payment && !paymentMode;
+  const canEdit = locked && !showPaymentDetails;
   const nights = nightsBetween(start, end);
   const total = payment ? nights * payment.costPerNight : 0;
   const amount = payment ? formatPrice(total, payment.currency) : "";
@@ -119,6 +122,14 @@ export function ConfirmBar({
     window.setTimeout(() => setCopied(null), 1400);
   }
 
+  function handleConfirm() {
+    if (shouldMorphToPayment) {
+      onConfirm();
+      return;
+    }
+    closeWith(onConfirm);
+  }
+
   useEffect(() => {
     if (mode !== "edit" || !locked) return;
     let firstFrame: number | null = null;
@@ -146,19 +157,19 @@ export function ConfirmBar({
       <BottomOverlayShell isClosing={isClosing}>
         <div
           ref={cardRef}
-          role={paymentMode ? "dialog" : undefined}
-          aria-modal={paymentMode ? true : undefined}
-          aria-labelledby={paymentMode ? "payment-title" : undefined}
+          role={showPaymentDetails ? "dialog" : undefined}
+          aria-modal={showPaymentDetails ? true : undefined}
+          aria-labelledby={showPaymentDetails ? "payment-title" : undefined}
           className={[
             "booking-confirm-card flex w-full flex-col rounded-[12px] sm:rounded-[14px] border border-rule bg-paper shadow-card max-w-[calc(100vw-1.5rem)] sm:w-[480px] origin-bottom",
-            locked || paymentMode
+            locked || showPaymentDetails
               ? "is-locked pointer-events-auto"
               : "pointer-events-none",
-            paymentMode ? "is-payment" : "",
+            showPaymentDetails ? "is-payment" : "",
           ].join(" ")}
         >
           <div ref={contentRef}>
-          {paymentMode && payment ? (
+          {showPaymentDetails ? (
             <div className="booking-payment-content px-4 py-4 sm:px-5 sm:py-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -274,7 +285,7 @@ export function ConfirmBar({
             <div className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-1.5">
               <button
                 type="button"
-                onClick={() => closeWith(onConfirm)}
+                onClick={handleConfirm}
                 disabled={
                   !locked || !!conflict || pending || !hasChanges || isClosing
                 }
