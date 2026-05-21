@@ -23,7 +23,7 @@ export default async function MaryPage() {
           </p>
           <Link
             href="/"
-            className="mt-6 inline-flex rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-paper"
+            className="mt-6 inline-flex rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-paper shadow-control"
           >
             Back to calendar
           </Link>
@@ -56,7 +56,7 @@ export default async function MaryPage() {
             <ThemeToggle />
             <Link
               href="/"
-              className="rounded-full border border-rule px-3 py-1.5 text-[12px] font-medium text-ink transition-colors hover:border-ink"
+              className="rounded-full border border-rule bg-paper/70 px-3 py-1.5 text-[12px] font-medium text-ink shadow-control transition-colors hover:border-ink"
             >
               Calendar
             </Link>

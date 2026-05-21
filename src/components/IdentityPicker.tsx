@@ -242,7 +242,7 @@ export function IdentityPicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Edit profile for ${current.first}`}
-        className="inline-flex h-[34px] items-center gap-2 rounded-full border border-rule py-1 pl-1 pr-3 text-[13px] leading-none transition-colors hover:border-ink data-[open=true]:border-ink"
+        className="inline-flex h-[34px] items-center gap-2 rounded-full border border-rule bg-paper/70 py-1 pl-1 pr-3 text-[13px] leading-none shadow-control transition-colors hover:border-ink data-[open=true]:border-ink"
         data-open={open}
       >
         <AvatarCircle person={current} size={26} fontSize={12} />

@@ -355,7 +355,7 @@ function CalendarDayCell({
           }}
           aria-label="Add a photo for this day"
           className={[
-            "absolute z-[9] place-items-center rounded-[4px] sm:rounded-[5px] border border-dashed border-rule bg-paper/85 text-[12px] leading-none text-faint opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:border-ink hover:text-ink",
+            "absolute z-[9] place-items-center rounded-[4px] sm:rounded-[5px] border border-dashed border-rule bg-paper/85 text-[12px] leading-none text-faint opacity-0 shadow-control transition-opacity duration-150 group-hover:opacity-100 hover:border-ink hover:text-ink",
             showThumbStack
               ? "max-sm:hidden grid h-[30px] w-[30px] bottom-[42px]"
               : "grid h-[22px] w-[22px] sm:h-[26px] sm:w-[26px] bottom-[30px] sm:bottom-[40px]",

@@ -136,7 +136,7 @@ export function ConfirmBar({
                 disabled={
                   !locked || !!conflict || pending || !hasChanges || isClosing
                 }
-                className="pointer-events-auto whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25 sm:px-4"
+                className="pointer-events-auto whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-paper shadow-control transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25 sm:px-4"
               >
                 {confirmLabel}
               </button>
@@ -262,7 +262,7 @@ export function ChoiceBar({
             <button
               type="button"
               onClick={() => closeWith(onDelete)}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-rule px-2.5 py-1.5 text-[12px] font-medium text-ink transition-colors hover:border-ink sm:px-3"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-rule bg-paper/70 px-2.5 py-1.5 text-[12px] font-medium text-ink shadow-control transition-colors hover:border-ink sm:px-3"
             >
               <Trash2 size={12} strokeWidth={2.25} />
               Delete
@@ -317,7 +317,7 @@ export function DeleteBar({
               type="button"
               onClick={() => closeWith(onDelete)}
               disabled={pending || isClosing}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25 sm:px-4"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-paper shadow-control transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25 sm:px-4"
             >
               {!pending ? <Trash2 size={12} strokeWidth={2.25} /> : null}
               {pending ? "Removing…" : "Delete"}
@@ -412,7 +412,7 @@ function NudgeButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="grid h-8 w-8 place-items-center rounded-full border border-rule text-[14px] text-muted transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-rule disabled:hover:bg-paper disabled:hover:text-muted"
+      className="grid h-8 w-8 place-items-center rounded-full border border-rule bg-paper/70 text-[14px] text-muted shadow-control transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-rule disabled:hover:bg-paper disabled:hover:text-muted"
     >
       {children}
     </button>

@@ -85,7 +85,7 @@ export function CloseIconButton({
       onClick={onClick}
       aria-label="Close"
       className={[
-        "pointer-events-auto grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-soft hover:text-ink",
+        "pointer-events-auto grid h-7 w-7 shrink-0 place-items-center rounded-full bg-paper/70 text-muted shadow-control transition-colors hover:bg-soft hover:text-ink",
         className,
       ].join(" ")}
     >

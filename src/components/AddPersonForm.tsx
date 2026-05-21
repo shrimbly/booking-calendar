@@ -137,7 +137,7 @@ export function AddPersonForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-full bg-ink px-3.5 py-1.5 text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
+          className="rounded-full bg-ink px-3.5 py-1.5 text-[12px] font-medium text-paper shadow-control transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
         >
           {isPending ? "Adding..." : "Add"}
         </button>

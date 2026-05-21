@@ -114,7 +114,7 @@ export function PhotoSheet({
               type="button"
               onClick={onClose}
               aria-label="close"
-              className="grid h-8 w-8 place-items-center rounded-full text-faint transition-colors hover:text-ink"
+              className="grid h-8 w-8 place-items-center rounded-full bg-paper/70 text-faint shadow-control transition-colors hover:text-ink"
             >
               ×
             </button>
@@ -127,7 +127,7 @@ export function PhotoSheet({
                   type="button"
                   onClick={pickFiles}
                   disabled={pending}
-                  className="flex w-full flex-col items-center gap-3 rounded-[10px] border border-dashed border-rule px-4 py-12 text-center transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full flex-col items-center gap-3 rounded-[10px] border border-dashed border-rule bg-paper/70 px-4 py-12 text-center shadow-control transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="grid h-12 w-12 place-items-center rounded-full border border-dashed border-rule text-[20px] text-faint">
                     +
@@ -188,7 +188,7 @@ export function PhotoSheet({
                     onClick={pickFiles}
                     disabled={pending}
                     aria-label="Add a photo"
-                    className="grid aspect-square place-items-center rounded-[8px] border border-dashed border-rule text-[26px] leading-none text-faint transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                    className="grid aspect-square place-items-center rounded-[8px] border border-dashed border-rule bg-paper/70 text-[26px] leading-none text-faint shadow-control transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     +
                   </button>
@@ -326,7 +326,7 @@ function Lightbox({
             type="button"
             onClick={onDelete}
             disabled={pending}
-            className="rounded-full px-2.5 py-1.5 text-[11px] sm:text-[12px] text-muted transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full border border-rule bg-paper/80 px-2.5 py-1.5 text-[11px] sm:text-[12px] text-muted shadow-control transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
             {pending ? "Removing…" : "Delete"}
           </button>
@@ -358,7 +358,7 @@ function Lightbox({
             type="button"
             onClick={onPrev}
             aria-label="previous"
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full text-[16px] sm:text-[18px] leading-none text-muted bg-paper/70 border border-rule backdrop-blur-sm transition-colors hover:bg-paper hover:text-ink"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full text-[16px] sm:text-[18px] leading-none text-muted bg-paper/70 border border-rule shadow-control backdrop-blur-sm transition-colors hover:bg-paper hover:text-ink"
           >
             ‹
           </button>
@@ -368,7 +368,7 @@ function Lightbox({
             type="button"
             onClick={onNext}
             aria-label="next"
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full text-[16px] sm:text-[18px] leading-none text-muted bg-paper/70 border border-rule backdrop-blur-sm transition-colors hover:bg-paper hover:text-ink"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full text-[16px] sm:text-[18px] leading-none text-muted bg-paper/70 border border-rule shadow-control backdrop-blur-sm transition-colors hover:bg-paper hover:text-ink"
           >
             ›
           </button>

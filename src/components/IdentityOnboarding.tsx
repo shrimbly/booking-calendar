@@ -61,7 +61,7 @@ export function IdentityOnboarding({ people }: { people: Person[] }) {
                 onClick={() => pick(p.id)}
                 disabled={isPending}
                 style={{ animationDelay: `${240 + i * 35}ms` }}
-                className="flex w-full items-center gap-3 rounded-[10px] border border-rule px-3 py-2.5 text-left transition-all hover:border-ink disabled:cursor-not-allowed disabled:opacity-50 animate-blur-fade"
+                className="flex w-full items-center gap-3 rounded-[10px] border border-rule bg-paper/70 px-3 py-2.5 text-left shadow-control transition-all hover:border-ink disabled:cursor-not-allowed disabled:opacity-50 animate-blur-fade"
               >
                 {p.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -104,7 +104,7 @@ export function IdentityOnboarding({ people }: { people: Person[] }) {
               type="button"
               disabled={isPending}
               onClick={() => setAdding(true)}
-              className="mt-3 flex w-full items-center gap-3 rounded-[10px] border border-dashed border-rule px-3 py-2.5 text-left text-[13px] text-muted transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-3 flex w-full items-center gap-3 rounded-[10px] border border-dashed border-rule bg-paper/70 px-3 py-2.5 text-left text-[13px] text-muted shadow-control transition-colors hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span className="grid h-9 w-9 place-items-center rounded-full border border-dashed border-rule text-[16px] font-medium text-faint shrink-0">
                 +

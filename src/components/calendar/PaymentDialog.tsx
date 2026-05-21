@@ -127,7 +127,7 @@ export function PaymentDialog({
                 type="button"
                 onClick={() => closeWith(onConfirm)}
                 disabled={isClosing}
-                className="whitespace-nowrap rounded-full bg-ink px-4 py-1.5 text-[12px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
+                className="whitespace-nowrap rounded-full bg-ink px-4 py-1.5 text-[12px] font-medium text-paper shadow-control transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
               >
                 OK
               </button>

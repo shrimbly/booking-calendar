@@ -100,7 +100,7 @@ export default async function Home({
                 href={monthHref(year, idx)}
                 className={
                   isCurrent
-                    ? "rounded-full bg-ink px-3 sm:px-2.5 py-1.5 sm:py-1 font-medium text-paper shrink-0"
+                    ? "rounded-full bg-ink px-3 sm:px-2.5 py-1.5 sm:py-1 font-medium text-paper shadow-control shrink-0"
                     : "rounded-full px-2 sm:px-1.5 py-1.5 sm:py-1 text-muted transition-colors hover:text-ink shrink-0"
                 }
               >
@@ -156,7 +156,7 @@ function YearArrow({
     <Link
       href={href}
       aria-label={label}
-      className="grid h-8 w-8 place-items-center rounded-full border border-rule text-[13px] text-muted transition-colors hover:border-ink hover:bg-ink hover:text-paper"
+      className="grid h-8 w-8 place-items-center rounded-full border border-rule bg-paper/70 text-[13px] text-muted shadow-control transition-colors hover:border-ink hover:bg-ink hover:text-paper"
     >
       {children}
     </Link>
