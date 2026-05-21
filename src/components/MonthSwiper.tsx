@@ -16,6 +16,7 @@ const MONTH_GESTURE_BLUR_PX = 0.45;
 const MONTH_GESTURE_RELEASE_MS = 300;
 const MONTH_GESTURE_RELEASE_HOLD_MS = 100;
 const MONTH_GESTURE_PAN_DELAY = 0.24;
+const BOOKING_SELECTION_SELECTOR = "[data-booking-selection-active='true']";
 
 let monthNavigationLockedUntil = 0;
 
@@ -62,6 +63,10 @@ function shouldIgnoreGestureTarget(target: EventTarget | null): boolean {
       "[data-noswipe]",
     ].join(","),
   );
+}
+
+function isBookingSelectionActive(): boolean {
+  return document.documentElement.matches(BOOKING_SELECTION_SELECTOR);
 }
 
 function isMonthNavigationLocked(): boolean {
@@ -162,12 +167,16 @@ export function MonthSwiper({
       startX = e.clientX;
       startY = e.clientY;
       setGesturePreview(0);
-      blocked = shouldIgnoreGestureTarget(e.target);
+      blocked = shouldIgnoreGestureTarget(e.target) || isBookingSelectionActive();
     }
 
     function onMove(e: PointerEvent) {
       if (e.pointerType !== "touch") return;
       if (blocked) return;
+      if (isBookingSelectionActive()) {
+        setGesturePreview(0);
+        return;
+      }
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       const horizontalIntent = Math.abs(dx) > Math.abs(dy) * SWIPE_RATIO;
@@ -181,6 +190,10 @@ export function MonthSwiper({
     function onUp(e: PointerEvent) {
       if (e.pointerType !== "touch") return;
       if (blocked) return;
+      if (isBookingSelectionActive()) {
+        setGesturePreview(0);
+        return;
+      }
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       const shouldNavigate =

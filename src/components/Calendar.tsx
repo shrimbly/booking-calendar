@@ -24,6 +24,7 @@ import { ServerErrorToast } from "./calendar/ServerErrorToast";
 
 const RIBBON_EXIT_ANIMATION_MS = 220;
 const RIBBON_EXIT_START_DELAY_MS = 80;
+const BOOKING_SELECTION_ATTRIBUTE = "data-booking-selection-active";
 
 export function Calendar({
   year,
@@ -143,6 +144,17 @@ export function Calendar({
   const selectionHasChanges = editingBooking
     ? editingBooking.start !== pickStart || editingBooking.end !== pickEnd
     : true;
+
+  useEffect(() => {
+    if (pickStart) {
+      document.documentElement.setAttribute(BOOKING_SELECTION_ATTRIBUTE, "true");
+      return () => {
+        document.documentElement.removeAttribute(BOOKING_SELECTION_ATTRIBUTE);
+      };
+    }
+    document.documentElement.removeAttribute(BOOKING_SELECTION_ATTRIBUTE);
+    return undefined;
+  }, [pickStart]);
 
   function confirmDelete() {
     if (!deletingId) return;

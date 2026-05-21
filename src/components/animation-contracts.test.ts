@@ -6,6 +6,7 @@ const bookingBars = readFileSync(
   "src/components/calendar/BookingBars.tsx",
   "utf8",
 );
+const calendar = readFileSync("src/components/Calendar.tsx", "utf8");
 const photoSheet = readFileSync("src/components/PhotoSheet.tsx", "utf8");
 const avatarPhotoEditor = readFileSync(
   "src/components/AvatarPhotoEditor.tsx",
@@ -81,12 +82,18 @@ describe("animation contracts", () => {
     expect(monthSwiper).toContain("const MONTH_GESTURE_RELEASE_MS = 300");
     expect(monthSwiper).toContain("const MONTH_GESTURE_RELEASE_HOLD_MS = 100");
     expect(monthSwiper).toContain("const MONTH_GESTURE_PAN_DELAY = 0.24");
+    expect(monthSwiper).toContain(
+      'const BOOKING_SELECTION_SELECTOR = "[data-booking-selection-active',
+    );
+    expect(monthSwiper).toContain("function isBookingSelectionActive()");
     expect(monthSwiper).toContain("clamped - MONTH_GESTURE_PAN_DELAY");
     expect(monthSwiper).toContain("const translateProgress = panProgress ** 1.45");
     expect(monthSwiper).toContain("const blurProgress = 1 - (1 - clamped) ** 1.35");
     expect(monthSwiper).toContain('"--month-gesture-x"');
     expect(monthSwiper).toContain('"--month-gesture-blur"');
     expect(monthSwiper).toContain("blocked = shouldIgnoreGestureTarget(e.target)");
+    expect(monthSwiper).toContain("|| isBookingSelectionActive()");
+    expect(monthSwiper).toContain("if (isBookingSelectionActive())");
     expect(monthSwiper).toContain("if (horizontalIntent) e.preventDefault()");
     expect(monthSwiper).toContain(
       'window.addEventListener("pointermove", onMove, { passive: false })',
@@ -104,6 +111,16 @@ describe("animation contracts", () => {
     expect(monthSwiper).toContain("lockMonthNavigation()");
     expect(monthSwiper).not.toContain("nav=swipe");
     expect(monthSwiper).not.toContain("month-swipe-arriving");
+    expect(calendar).toContain(
+      'const BOOKING_SELECTION_ATTRIBUTE = "data-booking-selection-active"',
+    );
+    expect(calendar).toContain(
+      'document.documentElement.setAttribute(BOOKING_SELECTION_ATTRIBUTE, "true")',
+    );
+    expect(calendar).toContain(
+      "document.documentElement.removeAttribute(BOOKING_SELECTION_ATTRIBUTE)",
+    );
+    expect(calendar).toContain("}, [pickStart])");
     expect(css).not.toContain("month-swipe-arriving");
     expect(css).not.toContain("@keyframes month-swipe-arrive");
   });
