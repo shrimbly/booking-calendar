@@ -7,7 +7,6 @@ import { nightsBetween } from "@/lib/iso-date";
 import type { PaymentConfig } from "@/lib/payment";
 import {
   BottomOverlayShell,
-  CloseIconButton,
   OverlayBackdrop,
   fmtDay,
   useAnimatedClose,
@@ -72,8 +71,7 @@ export function PaymentDialog({
           aria-labelledby="payment-title"
           className="pointer-events-auto relative w-full max-w-[calc(100vw-1.5rem)] rounded-[12px] sm:w-[460px] sm:rounded-[14px] border border-rule bg-paper shadow-card"
         >
-          <CloseIconButton onClick={close} className="absolute right-3 top-3" />
-          <div className="px-4 py-4 pr-12 sm:px-5 sm:py-5 sm:pr-12">
+          <div className="px-4 py-4 sm:px-5 sm:py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2

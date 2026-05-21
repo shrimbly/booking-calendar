@@ -92,28 +92,30 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
             : "translate-y-[38px] scale-75 opacity-0",
         ].join(" ")}
       />
-      <Sun
+      <span
         aria-hidden
-        size={15}
-        strokeWidth={2.25}
+        data-testid="theme-toggle-sun"
         className={[
-          "theme-toggle-icon absolute",
+          "theme-toggle-icon absolute grid place-items-center",
           isDark
-            ? "-translate-y-[24px] rotate-180 scale-80 text-paper opacity-0 [filter:blur(5px)]"
+            ? "-translate-y-[28px] rotate-[135deg] scale-80 text-paper opacity-0 [filter:blur(5px)]"
             : "translate-y-0 rotate-0 scale-100 text-ink opacity-100 [filter:blur(0)]",
         ].join(" ")}
-      />
-      <Moon
+      >
+        <Sun aria-hidden size={15} strokeWidth={2.25} />
+      </span>
+      <span
         aria-hidden
-        size={15}
-        strokeWidth={2.25}
+        data-testid="theme-toggle-moon"
         className={[
-          "theme-toggle-icon absolute",
+          "theme-toggle-icon absolute grid place-items-center",
           isDark
             ? "translate-y-0 rotate-0 scale-100 text-paper opacity-100 [filter:blur(0)]"
-            : "translate-y-[38px] -rotate-180 scale-80 text-ink opacity-0 [filter:blur(5px)]",
+            : "translate-y-[34px] -rotate-[135deg] scale-80 text-ink opacity-0 [filter:blur(5px)]",
         ].join(" ")}
-      />
+      >
+        <Moon aria-hidden size={15} strokeWidth={2.25} />
+      </span>
     </button>
   );
 }

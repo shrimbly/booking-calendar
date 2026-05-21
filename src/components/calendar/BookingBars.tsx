@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import type { Booking, Person } from "@/lib/data";
 import { nightsBetween } from "@/lib/iso-date";
@@ -12,6 +12,8 @@ import {
   fmtDay,
   useAnimatedClose,
 } from "./overlayPrimitives";
+
+const EDIT_EXPANSION_DELAY_MS = 260;
 
 export function ConfirmBar({
   start,
@@ -47,6 +49,7 @@ export function ConfirmBar({
   const [editing, setEditing] = useState(false);
   const { isClosing, close, closeWith } = useAnimatedClose(onCancel);
   const canEdit = locked;
+  const motionKey = locked ? "confirm-locked" : "confirm-picking";
   const confirmLabel =
     mode === "edit"
       ? pending
@@ -58,16 +61,30 @@ export function ConfirmBar({
 
   useEffect(() => {
     if (mode !== "edit" || !locked) return;
-    const frame = window.requestAnimationFrame(() => setEditing(true));
-    return () => window.cancelAnimationFrame(frame);
+    let firstFrame: number | null = null;
+    let secondFrame: number | null = null;
+    const timer = window.setTimeout(() => {
+      firstFrame = window.requestAnimationFrame(() => {
+        secondFrame = window.requestAnimationFrame(() => setEditing(true));
+      });
+    }, EDIT_EXPANSION_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+      if (firstFrame !== null) window.cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) window.cancelAnimationFrame(secondFrame);
+    };
   }, [locked, mode]);
 
   return (
     <>
       {locked ? (
-        <OverlayBackdrop onPointerDown={close} isClosing={isClosing} />
+        <OverlayBackdrop
+          key={`backdrop-${motionKey}`}
+          onPointerDown={close}
+          isClosing={isClosing}
+        />
       ) : null}
-      <BottomOverlayShell isClosing={isClosing}>
+      <BottomOverlayShell key={motionKey} isClosing={isClosing}>
         <div
           className={[
             "flex w-full flex-col rounded-[12px] sm:rounded-[14px] border border-rule bg-paper shadow-card max-w-[calc(100vw-1.5rem)] sm:w-[480px] origin-bottom transition-transform duration-500 ease-out",
@@ -127,36 +144,78 @@ export function ConfirmBar({
             </div>
           </div>
           {canEdit ? (
-            <div
-              className="grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out"
-              style={{ gridTemplateRows: editing ? "1fr" : "0fr" }}
-              aria-hidden={!editing}
-            >
-              <div className="overflow-hidden">
-                <div className="border-t border-soft px-3 py-3 sm:px-4 sm:py-3.5 space-y-2">
-                  <NudgeRow
-                    label="Start"
-                    value={fmtDay(start)}
-                    onDec={() => onAdjustStart(-1)}
-                    onInc={() => onAdjustStart(1)}
-                    canDec={canAdjustStart(-1)}
-                    canInc={canAdjustStart(1)}
-                  />
-                  <NudgeRow
-                    label="End"
-                    value={fmtDay(end)}
-                    onDec={() => onAdjustEnd(-1)}
-                    onInc={() => onAdjustEnd(1)}
-                    canDec={canAdjustEnd(-1)}
-                    canInc={canAdjustEnd(1)}
-                  />
-                </div>
-              </div>
-            </div>
+            <EditControlsPanel editing={editing}>
+              <NudgeRow
+                label="Start"
+                value={fmtDay(start)}
+                onDec={() => onAdjustStart(-1)}
+                onInc={() => onAdjustStart(1)}
+                canDec={canAdjustStart(-1)}
+                canInc={canAdjustStart(1)}
+              />
+              <NudgeRow
+                label="End"
+                value={fmtDay(end)}
+                onDec={() => onAdjustEnd(-1)}
+                onInc={() => onAdjustEnd(1)}
+                canDec={canAdjustEnd(-1)}
+                canInc={canAdjustEnd(1)}
+              />
+            </EditControlsPanel>
           ) : null}
         </div>
       </BottomOverlayShell>
     </>
+  );
+}
+
+function EditControlsPanel({
+  editing,
+  children,
+}: {
+  editing: boolean;
+  children: ReactNode;
+}) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    const content = contentRef.current;
+    if (!panel || !content) return;
+    const measuredPanel = panel;
+    const measuredContent = content;
+
+    function measure() {
+      measuredPanel.style.setProperty(
+        "--edit-panel-height",
+        `${measuredContent.scrollHeight}px`,
+      );
+    }
+
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(measuredContent);
+    window.addEventListener("resize", measure);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={panelRef}
+      className={["booking-edit-panel", editing ? "is-open" : ""].join(" ")}
+      aria-hidden={!editing}
+    >
+      <div
+        ref={contentRef}
+        className="booking-edit-content border-t border-soft px-3 py-3 sm:px-4 sm:py-3.5 space-y-2"
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 

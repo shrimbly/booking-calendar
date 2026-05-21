@@ -90,7 +90,7 @@ export function PhotoSheet({
         <div
           aria-hidden
           onPointerDown={onClose}
-          className="fixed inset-0 z-40 bg-ink/45 animate-backdrop-fade"
+          className="themed-overlay-wash fixed inset-0 z-40 animate-backdrop-fade"
         />
       ) : null}
       <div
@@ -305,10 +305,8 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col"
+      className="themed-overlay-wash fixed inset-0 z-[60] flex flex-col"
       style={{
-        background:
-          "radial-gradient(ellipse at center, rgba(250, 248, 244, 0.32) 0%, rgba(250, 248, 244, 0.58) 100%)",
         opacity: isOpen ? 1 : 0,
         backdropFilter: blurValue,
         WebkitBackdropFilter: blurValue,
@@ -393,7 +391,7 @@ function PersonChip({ person }: { person: Person }) {
   }
   return (
     <div
-      className="grid h-[32px] w-[32px] sm:h-[36px] sm:w-[36px] shrink-0 place-items-center rounded-[6px] text-[12px] font-semibold text-paper"
+      className="grid h-[32px] w-[32px] sm:h-[36px] sm:w-[36px] shrink-0 place-items-center rounded-[6px] text-[12px] font-semibold text-[#faf8f4]"
       style={{ backgroundColor: person.color }}
     >
       {person.initial}

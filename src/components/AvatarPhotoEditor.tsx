@@ -287,10 +287,8 @@ export function AvatarPhotoEditor({
               aria-modal="true"
               aria-label="Crop profile photo"
               data-profile-photo-dialog
-              className="fixed inset-0 z-[70] flex flex-col"
+              className="themed-overlay-wash fixed inset-0 z-[70] flex flex-col"
               style={{
-                background:
-                  "radial-gradient(ellipse at center, color-mix(in srgb, var(--color-paper) 32%, transparent) 0%, color-mix(in srgb, var(--color-paper) 58%, transparent) 100%)",
                 opacity: dialogVisible ? 1 : 0,
                 backdropFilter: dialogVisible ? "blur(4px)" : "blur(0px)",
                 WebkitBackdropFilter: dialogVisible

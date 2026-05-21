@@ -472,7 +472,7 @@ function BookingAvatar({
           : undefined
       }
       className={[
-        "z-[8] grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] translate-y-px place-items-center self-end justify-self-start overflow-hidden rounded-[5px] sm:rounded-[6px] border border-avatar-ring text-[11px] sm:text-[12px] font-semibold text-paper shadow-control mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
+        "z-[8] grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] translate-y-px place-items-center self-end justify-self-start overflow-hidden rounded-[5px] sm:rounded-[6px] border border-avatar-ring text-[11px] sm:text-[12px] font-semibold text-[#faf8f4] shadow-control mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
         isExiting ? "pointer-events-none animate-avatar-shrink" : "",
         isOwn && !pickStart && !isExiting
           ? "cursor-pointer"
@@ -548,7 +548,7 @@ function PreviewAvatar({
   return (
     <div
       className={[
-        "pointer-events-none z-10 grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] translate-y-px place-items-center self-end justify-self-start overflow-hidden rounded-[5px] sm:rounded-[6px] border border-avatar-ring text-[11px] sm:text-[12px] font-semibold text-paper opacity-70 shadow-control mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
+        "pointer-events-none z-10 grid h-[26px] w-[26px] sm:h-[34px] sm:w-[34px] translate-y-px place-items-center self-end justify-self-start overflow-hidden rounded-[5px] sm:rounded-[6px] border border-avatar-ring text-[11px] sm:text-[12px] font-semibold text-[#faf8f4] opacity-70 shadow-control mb-1.5 sm:mb-2.5 ml-1 sm:ml-1.5",
         exiting ? "animate-avatar-shrink" : "animate-avatar-pop",
       ].join(" ")}
       style={{

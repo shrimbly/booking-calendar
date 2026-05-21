@@ -72,7 +72,7 @@ export function IdentityOnboarding({ people }: { people: Person[] }) {
                   />
                 ) : (
                   <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[13px] font-semibold text-paper"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[13px] font-semibold text-[#faf8f4]"
                     style={{ backgroundColor: p.color }}
                   >
                     {p.initial}

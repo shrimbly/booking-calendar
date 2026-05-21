@@ -27,6 +27,10 @@
   --animate-toast-pop-out: toast-pop-out 180ms cubic-bezier(0.4, 0, 0.6, 1) both;
   --animate-backdrop-fade: backdrop-fade 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   --animate-backdrop-fade-out: backdrop-fade-out 180ms cubic-bezier(0.4, 0, 0.6, 1) both;
+  --animate-selection-panel-in: selection-panel-in 420ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+  --animate-selection-panel-out: selection-panel-out 240ms cubic-bezier(0.4, 0, 0.6, 1) both;
+  --animate-selection-backdrop-in: selection-backdrop-in 320ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+  --animate-selection-backdrop-out: selection-backdrop-out 240ms cubic-bezier(0.4, 0, 0.6, 1) both;
   --animate-blur-fade: blur-fade 720ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
   --animate-blur-fade-flat: blur-fade-flat 720ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
   --animate-blur-fade-out: blur-fade-out 480ms cubic-bezier(0.4, 0, 0.6, 1) both;
@@ -45,6 +49,7 @@
   --theme-shadow-panel: 0 24px 60px -20px rgba(60, 40, 20, 0.25), 0 4px 10px -4px rgba(60, 40, 20, 0.08);
   --theme-shadow-control: 0 2px 8px -2px rgba(60, 40, 20, 0.15);
   --theme-shadow-photo: 0 40px 90px -25px rgba(60, 40, 20, 0.45), 0 8px 22px -6px rgba(60, 40, 20, 0.22);
+  --theme-overlay-wash: rgba(42, 42, 42, 0.35);
   --theme-ribbon-fill-color: 30%;
   --theme-ribbon-fill-paper: 70%;
   --theme-ribbon-muted-fill-color: 18%;
@@ -57,7 +62,7 @@
 }
 
 :root[data-theme="dark"] {
-  --theme-paper: #2a2a2a;
+  --theme-paper: #222222;
   --theme-ink: #faf8f4;
   --theme-muted: #c8c2b8;
   --theme-faint: #9f978b;
@@ -68,6 +73,7 @@
   --theme-shadow-panel: 0 26px 68px -22px rgba(0, 0, 0, 0.7), 0 6px 16px -8px rgba(0, 0, 0, 0.58);
   --theme-shadow-control: 0 2px 10px -3px rgba(0, 0, 0, 0.6);
   --theme-shadow-photo: 0 40px 90px -24px rgba(0, 0, 0, 0.78), 0 8px 24px -8px rgba(0, 0, 0, 0.62);
+  --theme-overlay-wash: rgba(0, 0, 0, 0.48);
   --theme-ribbon-fill-color: 40%;
   --theme-ribbon-fill-paper: 60%;
   --theme-ribbon-muted-fill-color: 28%;
@@ -81,7 +87,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --theme-paper: #2a2a2a;
+    --theme-paper: #222222;
     --theme-ink: #faf8f4;
     --theme-muted: #c8c2b8;
     --theme-faint: #9f978b;
@@ -92,6 +98,7 @@
     --theme-shadow-panel: 0 26px 68px -22px rgba(0, 0, 0, 0.7), 0 6px 16px -8px rgba(0, 0, 0, 0.58);
     --theme-shadow-control: 0 2px 10px -3px rgba(0, 0, 0, 0.6);
     --theme-shadow-photo: 0 40px 90px -24px rgba(0, 0, 0, 0.78), 0 8px 24px -8px rgba(0, 0, 0, 0.62);
+    --theme-overlay-wash: rgba(0, 0, 0, 0.48);
     --theme-ribbon-fill-color: 40%;
     --theme-ribbon-fill-paper: 60%;
     --theme-ribbon-muted-fill-color: 28%;
@@ -108,6 +115,28 @@ html, body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  overscroll-behavior-x: none;
+}
+
+main {
+  transform-origin: center top;
+}
+
+main.month-gesture-preview {
+  filter: blur(var(--month-gesture-blur, 0));
+  transform: translate3d(var(--month-gesture-x, 0), 0, 0);
+  transition:
+    filter 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: filter, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main.month-gesture-preview {
+    filter: none;
+    transform: none;
+    transition: none;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -143,6 +172,63 @@ html, body {
     scale 620ms cubic-bezier(0.16, 0.84, 0.44, 1),
     filter 460ms cubic-bezier(0.16, 0.84, 0.44, 1),
     color 260ms cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+
+.themed-overlay-wash {
+  background: var(--theme-overlay-wash);
+}
+
+.selection-backdrop {
+  transition: opacity 320ms cubic-bezier(0.16, 0.84, 0.44, 1);
+  will-change: opacity;
+}
+
+.selection-backdrop.is-closing {
+  transition-duration: 240ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.selection-panel {
+  transform-origin: center bottom;
+  transition:
+    opacity 420ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    filter 420ms cubic-bezier(0.16, 0.84, 0.44, 1),
+    transform 420ms cubic-bezier(0.16, 0.84, 0.44, 1);
+  will-change: opacity, transform, filter;
+}
+
+.selection-panel.is-closing {
+  transition-duration: 240ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.booking-edit-panel {
+  height: 0;
+  overflow: hidden;
+  transition: height 640ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: height;
+}
+
+.booking-edit-panel.is-open {
+  height: var(--edit-panel-height, 0px);
+}
+
+.booking-edit-content {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(-6px);
+  transition:
+    opacity 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: 90ms;
+  will-change: opacity, filter, transform;
+}
+
+.booking-edit-panel.is-open .booking-edit-content {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
 }
 
 .profile-zoom-slider {
@@ -294,6 +380,42 @@ html, body {
 @keyframes backdrop-fade-out {
   from { opacity: 1; }
   to { opacity: 0; }
+}
+
+@keyframes selection-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes selection-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes selection-panel-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(32px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes selection-panel-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(28px) scale(0.975);
+  }
 }
 
 @keyframes blur-fade {
