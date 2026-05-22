@@ -28,17 +28,17 @@ export function PhotoStack({
       aria-label={`View ${photos.length} photo${photos.length === 1 ? "" : "s"}`}
       className={[
         "absolute z-[9] block h-[26px] w-[26px] sm:h-[32px] sm:w-[32px]",
-        "bottom-[30px] sm:bottom-[40px]",
+        "bottom-[24px] sm:bottom-[40px]",
         disabled ? "pointer-events-none" : "",
         offsetForAvatar
-          ? "left-[34px] sm:left-[44px]"
+          ? "left-[32px] sm:left-[44px]"
           : "left-[26px] sm:left-[34px]",
       ].join(" ")}
     >
       {hasMore ? (
         <span
           aria-hidden
-          className="absolute inset-0 translate-x-[7px] scale-[0.92] rounded-[4px] sm:rounded-[5px] border border-paper bg-soft shadow-control overflow-hidden"
+          className="absolute inset-0 translate-x-[4px] scale-[0.92] rounded-[4px] border border-paper bg-soft shadow-control overflow-hidden sm:translate-x-[7px] sm:rounded-[5px]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
