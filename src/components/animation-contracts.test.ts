@@ -139,22 +139,29 @@ describe("animation contracts", () => {
     expect(keyframes("avatar-shrink")).toContain("scale(0.78)");
   });
 
-  it("keeps the edited booking preview lifted in dark mode", () => {
-    expect(cssBlock(".preview-ribbon-fill.is-editing")).toContain("opacity: 1");
+  it("keeps the edited booking preview above the wash without recoloring it", () => {
     expect(cssBlock(".preview-ribbon-fill.is-editing")).toContain(
       "z-index: 25",
     );
-    expect(css).toContain(
+    expect(cssBlock(".preview-avatar.is-editing")).toContain("z-index: 26");
+    expect(css).not.toContain(
       ':root[data-theme="dark"] .preview-ribbon-fill.is-editing',
     );
-    expect(css).toContain("--theme-ribbon-fill-color: 100%");
-    expect(css).toContain("--theme-ribbon-fill-paper: 0%");
-    expect(css).toContain("--theme-ribbon-label-ink: 100%");
-    expect(css).toContain("filter: saturate(1.35) brightness(1.22)");
+    expect(css).not.toContain("--theme-ribbon-fill-color: 100%");
+    expect(css).not.toContain("filter: saturate(1.35) brightness(1.22)");
     expect(css).toContain(".preview-avatar.is-editing");
     expect(calendarGrid).toContain("data-preview-ribbon={editing && !exiting");
     expect(calendarGrid).toContain("data-booking-ribbon={row.bookingId}");
-    expect(calendarGrid).toContain("editing={editingId != null}");
+    expect(calendarGrid).toContain("previewEditing: boolean");
+    expect(calendarGrid).toContain("editing={previewEditing}");
+    expect(calendar).toContain("const [selectionEditControlsOpen");
+    expect(calendar).toContain("previewEditing={");
+    expect(calendar).toContain(
+      "editingId != null || (pickEnd != null && selectionEditControlsOpen)",
+    );
+    expect(calendar).toContain("onEditControlsChange={setSelectionEditControlsOpen}");
+    expect(bookingBars).toContain("onEditControlsChange?: (editing: boolean) => void");
+    expect(bookingBars).toContain("function toggleEditing()");
     expect(calendarGrid).toContain('editing && !exiting ? "is-editing" : ""');
   });
 

@@ -27,6 +27,7 @@ type CalendarGridProps = {
   actioningId: string | null;
   deletingId: string | null;
   editingId: string | null;
+  previewEditing: boolean;
   isDragging: boolean;
   onPointerLeave: () => void;
   onHoverDate: (iso: string) => void;
@@ -64,6 +65,7 @@ export function CalendarGrid({
   actioningId,
   deletingId,
   editingId,
+  previewEditing,
   isDragging,
   onPointerLeave,
   onHoverDate,
@@ -190,7 +192,7 @@ export function CalendarGrid({
               row={row}
               index={index}
               person={me}
-              editing={editingId != null}
+              editing={previewEditing}
             />
           ))}
 
@@ -208,7 +210,7 @@ export function CalendarGrid({
             <PreviewAvatar
               row={previewRows[0]}
               person={me}
-              editing={editingId != null}
+              editing={previewEditing}
             />
           ) : null}
 

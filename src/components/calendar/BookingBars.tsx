@@ -47,6 +47,7 @@ export function ConfirmBar({
   payment,
   paymentMode = false,
   onPaymentConfirm,
+  onEditControlsChange,
 }: {
   start: string;
   end: string;
@@ -65,6 +66,7 @@ export function ConfirmBar({
   payment?: PaymentConfig | null;
   paymentMode?: boolean;
   onPaymentConfirm?: () => void;
+  onEditControlsChange?: (editing: boolean) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -128,6 +130,14 @@ export function ConfirmBar({
       return;
     }
     closeWith(onConfirm);
+  }
+
+  function toggleEditing() {
+    setEditing((value) => {
+      const next = !value;
+      onEditControlsChange?.(next);
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -268,7 +278,7 @@ export function ConfirmBar({
                   />
                   <button
                     type="button"
-                    onClick={() => setEditing((value) => !value)}
+                    onClick={toggleEditing}
                     aria-expanded={editing}
                     tabIndex={locked ? 0 : -1}
                     className={[

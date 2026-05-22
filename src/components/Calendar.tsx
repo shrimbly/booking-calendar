@@ -45,6 +45,8 @@ export function Calendar({
 }) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectionEditControlsOpen, setSelectionEditControlsOpen] =
+    useState(false);
   const [exitingBookingIds, setExitingBookingIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -221,6 +223,9 @@ export function Calendar({
         actioningId={actioningId}
         deletingId={deletingId}
         editingId={editingId}
+        previewEditing={
+          editingId != null || (pickEnd != null && selectionEditControlsOpen)
+        }
         isDragging={isDragging}
         onPointerLeave={clearHovered}
         onHoverDate={setHovered}
@@ -241,12 +246,22 @@ export function Calendar({
                   locked={pickEnd != null || canShowPaymentReview}
                   person={me}
                   conflict={canShowPaymentReview ? null : conflict}
-                  onCancel={
-                    canShowPaymentReview ? () => setPaymentReview(null) : cancel
-                  }
-                  onConfirm={
-                    canShowPaymentReview ? () => setPaymentReview(null) : confirm
-                  }
+                  onCancel={() => {
+                    setSelectionEditControlsOpen(false);
+                    if (canShowPaymentReview) {
+                      setPaymentReview(null);
+                      return;
+                    }
+                    cancel();
+                  }}
+                  onConfirm={() => {
+                    setSelectionEditControlsOpen(false);
+                    if (canShowPaymentReview) {
+                      setPaymentReview(null);
+                      return;
+                    }
+                    confirm();
+                  }}
                   onAdjustStart={adjustStart}
                   onAdjustEnd={adjustEnd}
                   canAdjustStart={canAdjustStart}
@@ -257,6 +272,7 @@ export function Calendar({
                   payment={paymentConfig}
                   paymentMode={canShowPaymentReview}
                   onPaymentConfirm={() => setPaymentReview(null)}
+                  onEditControlsChange={setSelectionEditControlsOpen}
                 />
               ) : actioningId || deletingId ? (
                 <ChoiceBar
