@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import type { Person } from "@/lib/data";
 import {
@@ -29,6 +29,11 @@ export function IdentityPicker({
   const [menuVisible, setMenuVisible] = useState(false);
   const [view, setView] = useState<"profile" | "switch" | "add">("profile");
   const [viewVisible, setViewVisible] = useState(true);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
   const viewTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -51,6 +56,7 @@ export function IdentityPicker({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
   const [optimisticId, setOptimisticId] = useState(currentId);
   const [optimisticName, setOptimisticName] = useState<string | null>(null);
   const [optimisticColor, setOptimisticColor] = useState<string | null>(null);
@@ -62,7 +68,38 @@ export function IdentityPicker({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isPending, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(304, window.innerWidth - 32);
+    const left = Math.min(
+      Math.max(16, rect.right - width),
+      window.innerWidth - width - 16,
+    );
+    setMenuPosition({
+      top: rect.bottom + 8,
+      left,
+      width,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!renderMenu) return;
+    updateMenuPosition();
+    const frame = window.requestAnimationFrame(updateMenuPosition);
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+    };
+  }, [renderMenu, updateMenuPosition]);
 
   const baseCurrent =
     people.find((p) => p.id === optimisticId) ??
@@ -103,7 +140,12 @@ export function IdentityPicker({
       ) {
         return;
       }
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        rootRef.current &&
+        !rootRef.current.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     };
@@ -238,6 +280,7 @@ export function IdentityPicker({
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="dialog"
@@ -267,65 +310,70 @@ export function IdentityPicker({
             />,
             document.body,
           )}
-          <div
-            role="dialog"
-            aria-label="Your profile"
-            className="absolute right-0 top-[calc(100%+8px)] z-20 w-[304px] overflow-hidden rounded-[12px] border border-rule bg-paper shadow-card origin-top-right"
-            style={{
-              opacity: menuVisible ? 1 : 0,
-              transform: menuVisible
-                ? "translateY(0) scale(1)"
-                : "translateY(-6px) scale(0.96)",
-              transition:
-                "opacity 220ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1)",
-            }}
-          >
-          <div
-            style={{
-              opacity: viewVisible ? 1 : 0,
-              transform: viewVisible ? "translateX(0)" : "translateX(-8px)",
-              transition:
-                "opacity 140ms cubic-bezier(0.4, 0, 0.6, 1), transform 140ms cubic-bezier(0.4, 0, 0.6, 1)",
-            }}
-          >
-            {view === "profile" ? (
-              <ProfileView
-                current={current}
-                error={error}
-                savedFlash={savedFlash}
-                isPending={isPending}
-                isUploadingImage={isUploadingImage}
-                nameInputRef={nameInputRef}
-                onCommitName={commitName}
-                onPickColor={pickColor}
-                onPhotoSave={handlePhotoSave}
-                onRemoveImage={handleRemoveImage}
-                onOpenSwitch={() => showView("switch")}
-                showMaryMode={showMaryMode}
-                onClose={() => setOpen(false)}
-              />
-            ) : (
-              view === "switch" ? (
-                <SwitchView
-                  people={people}
-                  currentId={current.id}
-                  isPending={isPending}
-                  onPick={switchTo}
-                  onAdd={() => showView("add")}
-                  onBack={() => showView("profile")}
-                />
-              ) : (
-                <AddView
-                  onBack={() => showView("switch")}
-                  onCreated={(id) => {
-                    setOptimisticId(id);
-                    setOpen(false);
-                  }}
-                />
-              )
-            )}
-          </div>
-          </div>
+          {createPortal(
+            <div
+              ref={menuRef}
+              role="dialog"
+              aria-label="Your profile"
+              className="fixed z-20 max-w-[304px] overflow-hidden rounded-[12px] border border-rule bg-paper shadow-card origin-top-right"
+              style={{
+                top: menuPosition?.top ?? 0,
+                left: menuPosition?.left ?? 0,
+                width: menuPosition?.width ?? 304,
+                opacity: menuVisible ? 1 : 0,
+                transform: menuVisible
+                  ? "translateY(0) scale(1)"
+                  : "translateY(-6px) scale(0.96)",
+                transition:
+                  "opacity 220ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1)",
+              }}
+            >
+              <div
+                style={{
+                  opacity: viewVisible ? 1 : 0,
+                  transform: viewVisible ? "translateX(0)" : "translateX(-8px)",
+                  transition:
+                    "opacity 140ms cubic-bezier(0.4, 0, 0.6, 1), transform 140ms cubic-bezier(0.4, 0, 0.6, 1)",
+                }}
+              >
+                {view === "profile" ? (
+                  <ProfileView
+                    current={current}
+                    error={error}
+                    savedFlash={savedFlash}
+                    isPending={isPending}
+                    isUploadingImage={isUploadingImage}
+                    nameInputRef={nameInputRef}
+                    onCommitName={commitName}
+                    onPickColor={pickColor}
+                    onPhotoSave={handlePhotoSave}
+                    onRemoveImage={handleRemoveImage}
+                    onOpenSwitch={() => showView("switch")}
+                    showMaryMode={showMaryMode}
+                    onClose={() => setOpen(false)}
+                  />
+                ) : view === "switch" ? (
+                  <SwitchView
+                    people={people}
+                    currentId={current.id}
+                    isPending={isPending}
+                    onPick={switchTo}
+                    onAdd={() => showView("add")}
+                    onBack={() => showView("profile")}
+                  />
+                ) : (
+                  <AddView
+                    onBack={() => showView("switch")}
+                    onCreated={(id) => {
+                      setOptimisticId(id);
+                      setOpen(false);
+                    }}
+                  />
+                )}
+              </div>
+            </div>,
+            document.body,
+          )}
         </>
       ) : null}
     </div>

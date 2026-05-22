@@ -70,8 +70,11 @@ describe("IdentityPicker outside interactions", () => {
     });
 
     const wash = document.querySelector(".themed-overlay-wash") as HTMLElement;
+    const menu = screen.getByRole("dialog", { name: "Your profile" });
     expect(wash.className).toContain("fixed inset-0");
     expect(wash.style.backdropFilter).toBe("blur(4px)");
+    expect(menu.className).toContain("fixed z-20");
+    expect(menu.parentElement).toBe(document.body);
 
     fireEvent.pointerDown(wash);
 
