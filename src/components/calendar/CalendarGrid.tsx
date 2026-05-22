@@ -7,6 +7,18 @@ import type { Person, Photo } from "@/lib/data";
 import { PhotoStack } from "./PhotoStack";
 import type { BookingRow, CalendarPreview, RowRibbon } from "./ribbons";
 
+export type TutorialCalendarOverlay = {
+  previewRows?: RowRibbon[];
+  bookingRows?: BookingRow[];
+  activeBookingId?: string | null;
+  previewEditing?: boolean;
+  pointer?: {
+    gridRow: number;
+    gridColumn: number;
+    motion: "tap" | "drag";
+  } | null;
+};
+
 type CalendarGridProps = {
   cells: Cell[];
   dayLabels: readonly string[];
@@ -43,6 +55,7 @@ type CalendarGridProps = {
     date: string,
     mode: "view" | "upload",
   ) => void;
+  tutorialOverlay?: TutorialCalendarOverlay | null;
 };
 
 export function CalendarGrid({
@@ -72,6 +85,7 @@ export function CalendarGrid({
   onPickDate,
   onSelectBooking,
   onOpenPhotos,
+  tutorialOverlay,
 }: CalendarGridProps) {
   const bodyRowCount = Math.max(
     ...cells.map((_, index) => Math.floor(index / 7) + 1),
@@ -216,6 +230,63 @@ export function CalendarGrid({
 
           {exitingPreviewAvatar ? (
             <PreviewAvatar row={exitingPreviewAvatar} person={me} exiting />
+          ) : null}
+
+          {tutorialOverlay?.previewRows?.map((row, index) => (
+            <PreviewRibbon
+              key={`tutorial-preview-${row.gridRow}-${row.startCol}-${row.endCol}`}
+              row={row}
+              index={index}
+              person={me}
+              editing={tutorialOverlay.previewEditing}
+            />
+          ))}
+
+          {tutorialOverlay?.previewRows?.[0] ? (
+            <PreviewAvatar
+              row={tutorialOverlay.previewRows[0]}
+              person={me}
+              editing={tutorialOverlay.previewEditing}
+            />
+          ) : null}
+
+          {tutorialOverlay?.bookingRows?.map((row) => (
+            <BookingRibbon
+              key={`tutorial-booking-${row.bookingKey}`}
+              row={row}
+              isOwn
+              isExiting={false}
+              isActive={tutorialOverlay.activeBookingId === row.bookingId}
+              pickStart={null}
+              onSelectBooking={() => undefined}
+            />
+          ))}
+
+          {tutorialOverlay?.bookingRows
+            ?.filter((row) => row.isBookingStart)
+            .map((row) => (
+              <BookingAvatar
+                key={`tutorial-avatar-${row.bookingKey}`}
+                row={row}
+                isOwn
+                isExiting={false}
+                pickStart={null}
+                onSelectBooking={() => undefined}
+              />
+            ))}
+
+          {tutorialOverlay?.pointer ? (
+            <div
+              aria-hidden
+              data-booking-tutorial-pointer={tutorialOverlay.pointer.motion}
+              className="booking-tutorial-pointer pointer-events-none z-[35] mb-7 sm:mb-9 self-end justify-self-center"
+              style={{
+                gridRow: tutorialOverlay.pointer.gridRow - 1,
+                gridColumn: tutorialOverlay.pointer.gridColumn,
+              }}
+            >
+              <span />
+            </div>
           ) : null}
         </div>
       </div>

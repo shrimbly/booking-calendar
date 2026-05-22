@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { BOOKING_TUTORIAL_OPEN_EVENT } from "@/lib/booking-tutorial";
 import { IdentityPicker } from "./IdentityPicker";
 
 vi.mock("@/app/actions", () => ({
@@ -79,5 +80,28 @@ describe("IdentityPicker outside interactions", () => {
     fireEvent.pointerDown(wash);
 
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("opens the booking tutorial from the profile menu and closes the menu", async () => {
+    const onOpenTutorial = vi.fn();
+    window.addEventListener(BOOKING_TUTORIAL_OPEN_EVENT, onOpenTutorial);
+
+    render(<IdentityPicker people={people} currentId="mary" />);
+
+    const trigger = screen.getByRole("button", {
+      name: "Edit profile for Mary",
+    });
+
+    fireEvent.click(trigger);
+
+    const tutorialButton = await screen.findByRole("button", {
+      name: /how to book/i,
+    });
+    fireEvent.click(tutorialButton);
+
+    expect(onOpenTutorial).toHaveBeenCalledTimes(1);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+    window.removeEventListener(BOOKING_TUTORIAL_OPEN_EVENT, onOpenTutorial);
   });
 });

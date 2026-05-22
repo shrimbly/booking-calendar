@@ -76,7 +76,7 @@ describe("calendar ribbon helpers", () => {
       ]);
   });
 
-  it("leaves a hard edge when a booking is clipped by the current month", () => {
+  it("styles the first visible cell as the start when a booking is clipped by the current month", () => {
     const bookings = [
       { id: "a", personId: "amy", start: "2026-04-29", end: "2026-05-03" },
       { id: "b", personId: "willie", start: "2026-05-30", end: "2026-06-03" },
@@ -88,7 +88,7 @@ describe("calendar ribbon helpers", () => {
       bookingId: "a",
       startCol: 5,
       endCol: 8,
-      roundLeft: false,
+      roundLeft: true,
       roundRight: true,
       imageUrl: "https://example.com/amy.jpg",
     });

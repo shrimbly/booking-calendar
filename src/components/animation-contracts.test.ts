@@ -21,6 +21,11 @@ const overlayPrimitives = readFileSync(
   "src/components/calendar/overlayPrimitives.tsx",
   "utf8",
 );
+const bookingTutorial = readFileSync(
+  "src/components/calendar/BookingTutorial.tsx",
+  "utf8",
+);
+const identityPicker = readFileSync("src/components/IdentityPicker.tsx", "utf8");
 
 function cssBlock(selector: string): string {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -356,5 +361,39 @@ describe("animation contracts", () => {
     expect(css).toContain("background-color");
     expect(css).toContain("border-color");
     expect(css).toContain("box-shadow");
+  });
+
+  it("keeps the booking tutorial demo-only and on existing UI primitives", () => {
+    expect(bookingTutorial).toContain("BOOKING_TUTORIAL_STORAGE_KEY");
+    expect(bookingTutorial).toContain("BOOKING_TUTORIAL_OPEN_EVENT");
+    expect(bookingTutorial).toContain("buildPreviewRows");
+    expect(bookingTutorial).toContain("buildBookingRows");
+    expect(bookingTutorial).toContain("<ConfirmBar");
+    expect(bookingTutorial).toContain("<ChoiceBar");
+    expect(bookingTutorial).toContain('"tap-start"');
+    expect(bookingTutorial).toContain('"tap-end"');
+    expect(bookingTutorial).toContain('"drag"');
+    expect(bookingTutorial).toContain('"edit"');
+    expect(bookingTutorial).toContain('"delete"');
+    expect(bookingTutorial).not.toContain("createBooking");
+    expect(bookingTutorial).not.toContain("updateBooking");
+    expect(bookingTutorial).not.toContain("deleteBooking");
+    expect(calendar).toContain("<BookingTutorial");
+    expect(calendar).toContain("tutorialOverlay={tutorialOverlay}");
+    expect(calendarGrid).toContain("type TutorialCalendarOverlay");
+    expect(calendarGrid).toContain("tutorialOverlay?.previewRows");
+    expect(calendarGrid).toContain("tutorialOverlay?.bookingRows");
+    expect(calendarGrid).toContain("data-booking-tutorial-pointer");
+    expect(identityPicker).toContain("How to book");
+    expect(identityPicker).toContain("BOOKING_TUTORIAL_OPEN_EVENT");
+    expect(cssBlock(".booking-tutorial-pointer")).toContain(
+      "animation: tutorial-pointer-tap 1800ms",
+    );
+    expect(cssBlock('.booking-tutorial-pointer[data-booking-tutorial-pointer="drag"]')).toContain(
+      "animation-name: tutorial-pointer-drag",
+    );
+    expect(keyframes("tutorial-pointer-drag")).toContain(
+      "translate3d(var(--tutorial-drag-x), 0, 0)",
+    );
   });
 });

@@ -19,6 +19,8 @@ import { CalendarPhotoSheet } from "./calendar/CalendarPhotoSheet";
 import { useOptimisticBookings } from "./calendar/useOptimisticBookings";
 import { useBookingSelection } from "./calendar/useBookingSelection";
 import { ServerErrorToast } from "./calendar/ServerErrorToast";
+import { BookingTutorial } from "./calendar/BookingTutorial";
+import type { TutorialCalendarOverlay } from "./calendar/CalendarGrid";
 
 const RIBBON_EXIT_ANIMATION_MS = 220;
 const RIBBON_EXIT_START_DELAY_MS = 80;
@@ -47,6 +49,8 @@ export function Calendar({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectionEditControlsOpen, setSelectionEditControlsOpen] =
     useState(false);
+  const [tutorialOverlay, setTutorialOverlay] =
+    useState<TutorialCalendarOverlay | null>(null);
   const [exitingBookingIds, setExitingBookingIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -243,6 +247,7 @@ export function Calendar({
         onOpenPhotos={(bookingId, date, mode) =>
           setPhotoContext({ bookingId, date, mode })
         }
+        tutorialOverlay={tutorialOverlay}
       />
 
       {mounted
@@ -316,6 +321,12 @@ export function Calendar({
               <ServerErrorToast
                 message={serverError}
                 onDismiss={() => setServerError(null)}
+              />
+
+              <BookingTutorial
+                cells={cells}
+                me={me}
+                onVisualChange={setTutorialOverlay}
               />
             </>,
             document.body,

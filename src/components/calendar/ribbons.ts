@@ -205,9 +205,6 @@ function markVisibleBookingEdges(
     row.roundRight = true;
   }
 
-  if (firstCellIso !== booking.start) {
-    rows[0].roundLeft = false;
-  }
   if (lastCellIso !== booking.end) {
     rows[rows.length - 1].roundRight = false;
   }

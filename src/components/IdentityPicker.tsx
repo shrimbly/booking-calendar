@@ -10,6 +10,7 @@ import {
   uploadProfileImage,
   removeProfileImage,
 } from "@/app/actions";
+import { BOOKING_TUTORIAL_OPEN_EVENT } from "@/lib/booking-tutorial";
 import { PALETTE } from "@/lib/palette";
 import { Pencil } from "lucide-react";
 import { AddPersonForm } from "./AddPersonForm";
@@ -277,6 +278,11 @@ export function IdentityPicker({
     }, 140);
   }
 
+  function openBookingTutorial() {
+    setOpen(false);
+    window.dispatchEvent(new Event(BOOKING_TUTORIAL_OPEN_EVENT));
+  }
+
   return (
     <div ref={rootRef} className="relative">
       <button
@@ -349,6 +355,7 @@ export function IdentityPicker({
                     onPhotoSave={handlePhotoSave}
                     onRemoveImage={handleRemoveImage}
                     onOpenSwitch={() => showView("switch")}
+                    onOpenBookingTutorial={openBookingTutorial}
                     showMaryMode={showMaryMode}
                     onClose={() => setOpen(false)}
                   />
@@ -392,6 +399,7 @@ function ProfileView({
   onPhotoSave,
   onRemoveImage,
   onOpenSwitch,
+  onOpenBookingTutorial,
   showMaryMode,
   onClose,
 }: {
@@ -406,6 +414,7 @@ function ProfileView({
   onPhotoSave: (blob: Blob) => Promise<void>;
   onRemoveImage: () => void;
   onOpenSwitch: () => void;
+  onOpenBookingTutorial: () => void;
   showMaryMode: boolean;
   onClose: () => void;
 }) {
@@ -538,6 +547,14 @@ function ProfileView({
           className="mb-1 flex w-full items-center justify-between rounded-[8px] px-2 py-2 text-left text-[12px] text-muted transition-colors hover:bg-soft hover:text-ink"
         >
           <span>Switch person</span>
+          <span className="text-[14px] leading-none text-faint">›</span>
+        </button>
+        <button
+          type="button"
+          onClick={onOpenBookingTutorial}
+          className="mb-1 flex w-full items-center justify-between rounded-[8px] px-2 py-2 text-left text-[12px] text-muted transition-colors hover:bg-soft hover:text-ink"
+        >
+          <span>How to book</span>
           <span className="text-[14px] leading-none text-faint">›</span>
         </button>
         {showMaryMode ? (
