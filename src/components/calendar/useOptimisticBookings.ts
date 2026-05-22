@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useMemo,
   useState,
   useTransition,
   type Dispatch,
@@ -13,11 +14,6 @@ import {
 } from "@/app/actions";
 import type { Booking } from "@/lib/data";
 
-type OptimisticBookingAction =
-  | { type: "add"; booking: Booking }
-  | { type: "remove"; id: string }
-  | { type: "update"; booking: Booking };
-
 export function useOptimisticBookings({
   initialBookings,
   meId,
@@ -28,56 +24,123 @@ export function useOptimisticBookings({
   setServerError: Dispatch<SetStateAction<string | null>>;
 }) {
   const [isBookingPending, startBookingTransition] = useTransition();
-  const [optimisticBookings, setOptimisticBookings] =
-    useState<Booking[]>(initialBookings);
+  const [localBookings, setLocalBookings] = useState<Map<string, Booking>>(
+    () => new Map(),
+  );
+  const [removedBookingIds, setRemovedBookingIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
-  function dispatchOptimisticBooking(action: OptimisticBookingAction) {
-    setOptimisticBookings((state) => {
-      if (action.type === "add") return [...state, action.booking];
-      if (action.type === "remove")
-        return state.filter((booking) => booking.id !== action.id);
-      if (action.type === "update") {
-        return state.map((booking) =>
-          booking.id === action.booking.id ? action.booking : booking,
-        );
-      }
-      return state;
+  const optimisticBookings = useMemo(() => {
+    const byId = new Map(initialBookings.map((booking) => [booking.id, booking]));
+    for (const id of removedBookingIds) byId.delete(id);
+    for (const [id, booking] of localBookings) {
+      if (!removedBookingIds.has(id)) byId.set(id, booking);
+    }
+    return Array.from(byId.values());
+  }, [initialBookings, localBookings, removedBookingIds]);
+
+  function upsertLocalBooking(booking: Booking) {
+    setRemovedBookingIds((current) => {
+      if (!current.has(booking.id)) return current;
+      const next = new Set(current);
+      next.delete(booking.id);
+      return next;
     });
+    setLocalBookings((current) => {
+      const next = new Map(current);
+      next.set(booking.id, booking);
+      return next;
+    });
+  }
+
+  function replaceLocalBookingId(tempId: string, booking: Booking) {
+    setLocalBookings((current) => {
+      const next = new Map(current);
+      next.delete(tempId);
+      next.set(booking.id, booking);
+      return next;
+    });
+    setRemovedBookingIds((current) => {
+      if (!current.has(tempId)) return current;
+      const next = new Set(current);
+      next.delete(tempId);
+      return next;
+    });
+  }
+
+  function removeLocalBooking(id: string) {
+    setLocalBookings((current) => {
+      if (!current.has(id)) return current;
+      const next = new Map(current);
+      next.delete(id);
+      return next;
+    });
+    setRemovedBookingIds((current) => {
+      if (!current.has(id)) return current;
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function markBookingRemoved(id: string) {
+    setRemovedBookingIds((current) => new Set(current).add(id));
+    setLocalBookings((current) => {
+      if (!current.has(id)) return current;
+      const next = new Map(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function restoreRemovedBooking(id: string) {
+    setRemovedBookingIds((current) => {
+      if (!current.has(id)) return current;
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function bookingById(id: string): Booking | undefined {
+    return optimisticBookings.find((booking) => booking.id === id);
   }
 
   function saveBooking(start: string, end: string, id: string | null) {
     setServerError(null);
-    startBookingTransition(async () => {
-      if (id) {
-        dispatchOptimisticBooking({
-          type: "update",
-          booking: { id, personId: meId, start, end },
-        });
+    if (id) {
+      const previous = bookingById(id);
+      upsertLocalBooking({ id, personId: meId, start, end });
+      startBookingTransition(async () => {
         const result = await updateBooking({ id, start, end });
         if ("error" in result) {
+          if (previous) upsertLocalBooking(previous);
+          else removeLocalBooking(id);
           setServerError(result.error);
         }
-        return;
-      }
+      });
+      return;
+    }
 
-      const optimisticId = crypto.randomUUID();
-      dispatchOptimisticBooking({
-        type: "add",
-        booking: {
-          id: optimisticId,
+    const optimisticId = crypto.randomUUID();
+    upsertLocalBooking({
+      id: optimisticId,
+      personId: meId,
+      start,
+      end,
+    });
+    startBookingTransition(async () => {
+      const result = await createBooking({ start, end });
+      if ("error" in result) {
+        removeLocalBooking(optimisticId);
+        setServerError(result.error);
+      } else {
+        replaceLocalBookingId(optimisticId, {
+          id: result.id,
           personId: meId,
           start,
           end,
-        },
-      });
-      const result = await createBooking({ start, end });
-      if ("error" in result) {
-        dispatchOptimisticBooking({ type: "remove", id: optimisticId });
-        setServerError(result.error);
-      } else {
-        dispatchOptimisticBooking({
-          type: "update",
-          booking: { id: result.id, personId: meId, start, end },
         });
       }
     });
@@ -85,10 +148,11 @@ export function useOptimisticBookings({
 
   function removeBooking(id: string) {
     setServerError(null);
+    markBookingRemoved(id);
     startBookingTransition(async () => {
-      dispatchOptimisticBooking({ type: "remove", id });
       const result = await deleteBookingAction(id);
       if ("error" in result) {
+        restoreRemovedBooking(id);
         setServerError(result.error);
       }
     });

@@ -185,12 +185,12 @@ export function Calendar({
     const startExitTimer = window.setTimeout(() => {
       setExitingBookingIds((prev) => new Set(prev).add(id));
       const removeTimer = window.setTimeout(() => {
+        removeBooking(id);
         setExitingBookingIds((prev) => {
           const next = new Set(prev);
           next.delete(id);
           return next;
         });
-        removeBooking(id);
       }, RIBBON_EXIT_ANIMATION_MS);
       bookingExitTimers.current.push(removeTimer);
     }, RIBBON_EXIT_START_DELAY_MS);

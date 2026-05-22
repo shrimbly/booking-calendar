@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const INCOMING_MONTH_ANIMATION_MS = 760;
+const INCOMING_MONTH_DELAY_MS = 140;
+const OUTGOING_MONTH_ANIMATION_MS = 620;
+
 // Cross-fades between month names so the swap doesn't feel abrupt.
 // The outgoing label stays mounted briefly (absolutely positioned over
 // the incoming one) and runs a blur-fade-out animation while the
@@ -35,7 +39,10 @@ export function MonthTitle({
   // timeout isn't cancelled by the unrelated state changes above.
   useEffect(() => {
     if (outgoing === null) return;
-    const t = window.setTimeout(() => setOutgoing(null), 520);
+    const t = window.setTimeout(
+      () => setOutgoing(null),
+      OUTGOING_MONTH_ANIMATION_MS,
+    );
     return () => window.clearTimeout(t);
   }, [outgoing]);
 
@@ -92,7 +99,9 @@ export function MonthTitle({
         className="block whitespace-nowrap"
         style={{
           animation:
-            "blur-fade-flat 720ms cubic-bezier(0.16, 0.84, 0.44, 1) both",
+            outgoing === null
+              ? "blur-fade-flat 720ms cubic-bezier(0.16, 0.84, 0.44, 1) both"
+              : `blur-fade-flat ${INCOMING_MONTH_ANIMATION_MS}ms cubic-bezier(0.16, 0.84, 0.44, 1) ${INCOMING_MONTH_DELAY_MS}ms both`,
         }}
       >
         {months[current]}
@@ -104,7 +113,7 @@ export function MonthTitle({
           className="pointer-events-none absolute inset-0 whitespace-nowrap"
           style={{
             animation:
-              "blur-fade-out 480ms cubic-bezier(0.4, 0, 0.6, 1) both",
+              `blur-fade-out ${OUTGOING_MONTH_ANIMATION_MS}ms cubic-bezier(0.4, 0, 0.6, 1) both`,
           }}
         >
           {months[outgoing]}

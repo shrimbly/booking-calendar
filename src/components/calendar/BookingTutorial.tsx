@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, X } from "lucide-react";
 import type { Cell } from "@/lib/calendar";
@@ -81,6 +81,11 @@ export function BookingTutorial({
   const demo = useMemo(() => buildDemoRanges(cells), [cells]);
   const stepId = STEP_IDS[stepIndex];
   const isLast = stepIndex === STEP_IDS.length - 1;
+  const visual = useMemo(
+    () => (open ? visualForStep({ cells, demo, me, phase, stepId }) : null),
+    [cells, demo, me, open, phase, stepId],
+  );
+  const lastVisualKey = useRef("__null");
 
   useEffect(() => {
     try {
@@ -107,25 +112,21 @@ export function BookingTutorial({
   }, []);
 
   useEffect(() => {
-    if (!open) {
-      onVisualChange(null);
-      return;
-    }
-
     if (stepId === "delete" && phase === "choice") {
       const timer = window.setTimeout(() => setPhase("delete"), 1150);
       return () => window.clearTimeout(timer);
     }
     return undefined;
-  }, [onVisualChange, open, phase, stepId]);
+  }, [phase, stepId]);
 
   useEffect(() => {
-    if (!open) {
-      onVisualChange(null);
+    const nextKey = visual ? JSON.stringify(visual) : "__null";
+    if (nextKey === lastVisualKey.current) {
       return;
     }
-    onVisualChange(visualForStep({ cells, demo, me, phase, stepId }));
-  }, [cells, demo, me, onVisualChange, open, phase, stepId]);
+    lastVisualKey.current = nextKey;
+    onVisualChange(visual);
+  }, [onVisualChange, visual]);
 
   function markSeen() {
     try {
