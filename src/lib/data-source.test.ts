@@ -16,6 +16,17 @@ describe("demo data source", () => {
     expect(data.photos).toEqual([]);
   });
 
+  it("loads year calendar data without photos in demo mode", async () => {
+    vi.stubEnv("DATABASE_URL", "");
+    const { fetchCalendarYearData } = await import("./data-source");
+    const data = await fetchCalendarYearData(2026);
+
+    expect(data.connected).toBe(false);
+    expect(data.people.length).toBeGreaterThan(0);
+    expect(data.bookings.map((booking) => booking.id)).toContain("seed-tom-1");
+    expect(data).not.toHaveProperty("photos");
+  });
+
   it("loads Mary data without a database", async () => {
     vi.stubEnv("DATABASE_URL", "");
     const { fetchMaryData } = await import("./data-source");

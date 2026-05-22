@@ -302,8 +302,8 @@ export function IdentityPicker({
               className="themed-overlay-wash fixed inset-0 z-10"
               style={{
                 opacity: menuVisible ? 1 : 0,
-                backdropFilter: menuVisible ? "blur(4px)" : "blur(0px)",
-                WebkitBackdropFilter: menuVisible ? "blur(4px)" : "blur(0px)",
+                backdropFilter: "blur(4px)",
+                WebkitBackdropFilter: "blur(4px)",
                 transition:
                   "opacity 260ms cubic-bezier(0.16, 0.84, 0.44, 1), backdrop-filter 260ms cubic-bezier(0.16, 0.84, 0.44, 1), -webkit-backdrop-filter 260ms cubic-bezier(0.16, 0.84, 0.44, 1)",
               }}

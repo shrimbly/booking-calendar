@@ -29,14 +29,26 @@ export async function getBookingsForMonth(
   year: number,
   month: number, // 0-indexed
 ): Promise<Booking[]> {
-  const db = getDb();
   // Month boundaries with the full next month included so cross-month
   // drag selection can detect conflicts before the route changes.
   const start = new Date(year, month, 1);
   const end = new Date(year, month + 2, 0);
-  const padStart = start;
-  const padEnd = end;
-  const toISO = (d: Date) => d.toISOString().slice(0, 10);
+  return getBookingsInRange(toISO(start), toISO(end));
+}
+
+export async function getBookingsForCalendarYear(
+  year: number,
+): Promise<Booking[]> {
+  const start = new Date(year - 1, 11, 1);
+  const end = new Date(year + 1, 1, 0);
+  return getBookingsInRange(toISO(start), toISO(end));
+}
+
+async function getBookingsInRange(
+  startIso: string,
+  endIso: string,
+): Promise<Booking[]> {
+  const db = getDb();
 
   const rows = await db
     .select()
@@ -44,10 +56,7 @@ export async function getBookingsForMonth(
     .where(
       // booking range overlaps the padded window if
       // booking.start <= padEnd AND booking.end >= padStart
-      and(
-        lte(bookings.startDate, toISO(padEnd)),
-        gte(bookings.endDate, toISO(padStart)),
-      ),
+      and(lte(bookings.startDate, endIso), gte(bookings.endDate, startIso)),
     );
 
   return rows.map((r) => ({
@@ -57,6 +66,10 @@ export async function getBookingsForMonth(
     end: r.endDate,
     paymentSettled: r.paymentSettled,
   }));
+}
+
+function toISO(d: Date): string {
+  return d.toISOString().slice(0, 10);
 }
 
 export type MaryStay = {

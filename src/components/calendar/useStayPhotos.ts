@@ -2,7 +2,6 @@
 
 import {
   useMemo,
-  useOptimistic,
   useState,
   useTransition,
   type Dispatch,
@@ -35,20 +34,45 @@ export function useStayPhotos({
   const [, startPhotoTransition] = useTransition();
   const [photoContext, setPhotoContext] = useState<PhotoContext | null>(null);
   const [photoPending, setPhotoPending] = useState(false);
-  const [optimisticPhotos, dispatchPhotos] = useOptimistic<
-    Photo[],
-    PhotoAction
-  >(initialPhotos, (state, action) => {
-    if (action.type === "add") return [...state, action.photo];
-    if (action.type === "remove")
-      return state.filter((photo) => photo.id !== action.id);
-    if (action.type === "replace") {
-      return state.map((photo) =>
-        photo.id === action.tempId ? action.photo : photo,
-      );
+  const [localPhotos, setLocalPhotos] = useState<Photo[]>([]);
+  const [removedPhotoIds, setRemovedPhotoIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  const optimisticPhotos = useMemo(() => {
+    const next = new Map<string, Photo>();
+    for (const photo of initialPhotos) {
+      if (!removedPhotoIds.has(photo.id)) next.set(photo.id, photo);
     }
-    return state;
-  });
+    for (const photo of localPhotos) {
+      if (!removedPhotoIds.has(photo.id)) next.set(photo.id, photo);
+    }
+    return Array.from(next.values());
+  }, [initialPhotos, localPhotos, removedPhotoIds]);
+
+  function dispatchPhotos(action: PhotoAction) {
+    if (action.type === "remove") {
+      setRemovedPhotoIds((current) => new Set(current).add(action.id));
+    }
+    if (action.type === "replace") {
+      setRemovedPhotoIds((current) => {
+        const next = new Set(current);
+        next.delete(action.tempId);
+        return next;
+      });
+    }
+    setLocalPhotos((state) => {
+      if (action.type === "add") return [...state, action.photo];
+      if (action.type === "remove")
+        return state.filter((photo) => photo.id !== action.id);
+      if (action.type === "replace") {
+        return state.map((photo) =>
+          photo.id === action.tempId ? action.photo : photo,
+        );
+      }
+      return state;
+    });
+  }
 
   const photosByDate = useMemo(() => {
     const map = new Map<string, Photo[]>();

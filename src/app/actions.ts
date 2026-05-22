@@ -17,6 +17,7 @@ import {
   generatePersonId,
   validatePersonName,
 } from "@/lib/person";
+import type { Photo } from "@/lib/data";
 
 const DB_NOT_CONFIGURED =
   "Database isn't configured yet. Add DATABASE_URL to save changes.";
@@ -464,6 +465,23 @@ export async function uploadStayPhoto(
 
   revalidatePath("/");
   return { id, url: blob.url, thumbnailUrl: thumbBlob.url };
+}
+
+export async function fetchPhotosForBookingIds(
+  bookingIds: string[],
+): Promise<{ photos: Photo[] } | { error: string }> {
+  if (!(await isGatePassed())) return { error: "Pin required" };
+  if (!hasDatabaseUrl()) return { photos: [] };
+
+  const uniqueIds = Array.from(
+    new Set(
+      bookingIds.filter((id) => /^[a-zA-Z0-9_-]{1,80}$/.test(id)).slice(0, 80),
+    ),
+  );
+  if (uniqueIds.length === 0) return { photos: [] };
+
+  const { getPhotosForBookings } = await import("@/db/queries");
+  return { photos: await getPhotosForBookings(uniqueIds) };
 }
 
 export async function deleteStayPhoto(

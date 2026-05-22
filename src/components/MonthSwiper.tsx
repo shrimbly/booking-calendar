@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { adjacentMonth } from "@/lib/calendar";
 
 const SWIPE_DISTANCE_PX = 60;
 const SWIPE_RATIO = 1.5; // |dx| must be at least this many times |dy|
@@ -19,27 +19,6 @@ const MONTH_GESTURE_PAN_DELAY = 0.24;
 const BOOKING_SELECTION_SELECTOR = "[data-booking-selection-active='true']";
 
 let monthNavigationLockedUntil = 0;
-
-function monthHref(year: number, month: number): string {
-  return `?m=${year}-${String(month + 1).padStart(2, "0")}`;
-}
-
-function adjacentMonth(
-  year: number,
-  month: number,
-  direction: "next" | "prev",
-): { year: number; month: number } {
-  if (direction === "next") {
-    return {
-      year: month + 1 > 11 ? year + 1 : year,
-      month: month + 1 > 11 ? 0 : month + 1,
-    };
-  }
-  return {
-    year: month - 1 < 0 ? year - 1 : year,
-    month: month - 1 < 0 ? 11 : month - 1,
-  };
-}
 
 function wheelPixels(event: WheelEvent): { dx: number; dy: number } {
   const multiplier = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
@@ -137,21 +116,12 @@ function releaseThenNavigate(afterRelease: () => void): number[] {
 export function MonthSwiper({
   year,
   month,
+  onNavigateMonth,
 }: {
   year: number;
   month: number;
+  onNavigateMonth: (target: { year: number; month: number }) => void;
 }) {
-  const router = useRouter();
-
-  // Warm the cache for the adjacent months so arrow / pill / swipe nav
-  // lands on a prefetched RSC payload instead of a fresh server roundtrip.
-  useEffect(() => {
-    const next = adjacentMonth(year, month, "next");
-    const prev = adjacentMonth(year, month, "prev");
-    router.prefetch(monthHref(next.year, next.month));
-    router.prefetch(monthHref(prev.year, prev.month));
-  }, [year, month, router]);
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     // Touch devices only — desktop has its own arrow buttons / pills.
@@ -210,7 +180,7 @@ export function MonthSwiper({
       setGesturePreview(1, dx);
       lockMonthNavigation();
       navigationTimers = releaseThenNavigate(() => {
-        router.push(monthHref(target.year, target.month));
+        onNavigateMonth(target);
       });
     }
 
@@ -230,7 +200,7 @@ export function MonthSwiper({
       window.removeEventListener("pointercancel", onCancel);
       navigationTimers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [year, month, router]);
+  }, [year, month, onNavigateMonth]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -269,7 +239,7 @@ export function MonthSwiper({
       setGesturePreview(1, direction === "next" ? -1 : 1);
       lockMonthNavigation();
       navigationTimers = releaseThenNavigate(() => {
-        router.push(monthHref(target.year, target.month));
+        onNavigateMonth(target);
       });
     }
 
@@ -312,7 +282,7 @@ export function MonthSwiper({
       if (resetTimer != null) window.clearTimeout(resetTimer);
       navigationTimers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [year, month, router]);
+  }, [year, month, onNavigateMonth]);
 
   return null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useOptimistic,
+  useState,
   useTransition,
   type Dispatch,
   type SetStateAction,
@@ -28,20 +28,22 @@ export function useOptimisticBookings({
   setServerError: Dispatch<SetStateAction<string | null>>;
 }) {
   const [isBookingPending, startBookingTransition] = useTransition();
-  const [optimisticBookings, dispatchOptimisticBooking] = useOptimistic<
-    Booking[],
-    OptimisticBookingAction
-  >(initialBookings, (state, action) => {
-    if (action.type === "add") return [...state, action.booking];
-    if (action.type === "remove")
-      return state.filter((booking) => booking.id !== action.id);
-    if (action.type === "update") {
-      return state.map((booking) =>
-        booking.id === action.booking.id ? action.booking : booking,
-      );
-    }
-    return state;
-  });
+  const [optimisticBookings, setOptimisticBookings] =
+    useState<Booking[]>(initialBookings);
+
+  function dispatchOptimisticBooking(action: OptimisticBookingAction) {
+    setOptimisticBookings((state) => {
+      if (action.type === "add") return [...state, action.booking];
+      if (action.type === "remove")
+        return state.filter((booking) => booking.id !== action.id);
+      if (action.type === "update") {
+        return state.map((booking) =>
+          booking.id === action.booking.id ? action.booking : booking,
+        );
+      }
+      return state;
+    });
+  }
 
   function saveBooking(start: string, end: string, id: string | null) {
     setServerError(null);
@@ -58,10 +60,11 @@ export function useOptimisticBookings({
         return;
       }
 
+      const optimisticId = crypto.randomUUID();
       dispatchOptimisticBooking({
         type: "add",
         booking: {
-          id: crypto.randomUUID(),
+          id: optimisticId,
           personId: meId,
           start,
           end,
@@ -69,7 +72,13 @@ export function useOptimisticBookings({
       });
       const result = await createBooking({ start, end });
       if ("error" in result) {
+        dispatchOptimisticBooking({ type: "remove", id: optimisticId });
         setServerError(result.error);
+      } else {
+        dispatchOptimisticBooking({
+          type: "update",
+          booking: { id: result.id, personId: meId, start, end },
+        });
       }
     });
   }

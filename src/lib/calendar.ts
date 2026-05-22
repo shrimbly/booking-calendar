@@ -26,6 +26,57 @@ export const MONTH_NAMES = [
 
 export const DOW_MON_FIRST = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+export function monthHref(year: number, month: number): string {
+  return `?m=${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
+export function adjacentMonth(
+  year: number,
+  month: number,
+  direction: "next" | "prev",
+): { year: number; month: number } {
+  if (direction === "next") {
+    return {
+      year: month + 1 > 11 ? year + 1 : year,
+      month: month + 1 > 11 ? 0 : month + 1,
+    };
+  }
+  return {
+    year: month - 1 < 0 ? year - 1 : year,
+    month: month - 1 < 0 ? 11 : month - 1,
+  };
+}
+
+export function monthRange(year: number, month: number): {
+  start: string;
+  end: string;
+} {
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  return {
+    start: iso(start.getFullYear(), start.getMonth(), start.getDate()),
+    end: iso(end.getFullYear(), end.getMonth(), end.getDate()),
+  };
+}
+
+export function paddedCalendarMonthRange(
+  year: number,
+  month: number,
+): { start: string; end: string } {
+  return {
+    start: monthRange(year, month).start,
+    end: monthRange(year, month + 1).end,
+  };
+}
+
+export function bookingOverlapsRange(
+  booking: Booking,
+  start: string,
+  end: string,
+): boolean {
+  return booking.start <= end && booking.end >= start;
+}
+
 export function buildMonthCells(
   year: number,
   month: number,
@@ -53,6 +104,8 @@ export function buildMonthCells(
   const previewRowIndex = includeNextPreviewRow
     ? Math.ceil(total / 7) + resolvedNextRows
     : null;
+  const peopleById = new Map(people.map((person) => [person.id, person]));
+  const bookingByIso = buildBookingByIso(bookings);
 
   const cells: Cell[] = [];
   for (let i = 0; i < total + extraRows * 7; i++) {
@@ -77,9 +130,9 @@ export function buildMonthCells(
 
     let booking: Cell["booking"] = null;
     if (selectable || monthOffset === 1) {
-      const b = bookings.find((b) => cellIso >= b.start && cellIso <= b.end);
+      const b = bookingByIso.get(cellIso);
       if (b) {
-        const person = people.find((p) => p.id === b.personId);
+        const person = peopleById.get(b.personId);
         if (person) {
           booking = {
             id: b.id,
@@ -103,6 +156,29 @@ export function buildMonthCells(
     });
   }
   return cells;
+}
+
+function buildBookingByIso(bookings: Booking[]): Map<string, Booking> {
+  const map = new Map<string, Booking>();
+  for (const booking of bookings) {
+    const start = parseIsoDate(booking.start);
+    const end = parseIsoDate(booking.end);
+    if (!start || !end) continue;
+    for (
+      let date = start;
+      date.getTime() <= end.getTime();
+      date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
+    ) {
+      map.set(iso(date.getFullYear(), date.getMonth(), date.getDate()), booking);
+    }
+  }
+  return map;
+}
+
+function parseIsoDate(value: string): Date | null {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
 }
 
 export function maxNextRowsForMonth(year: number, month: number): number {

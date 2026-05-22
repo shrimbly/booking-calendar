@@ -153,6 +153,15 @@ export function Calendar({
   }, [paymentReview, paymentConfig, setPaymentReview]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDeletingId(null);
+      setSelectionEditControlsOpen(false);
+      setExitingBookingIds(new Set());
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [month, year]);
+
+  useEffect(() => {
     if (pickStart) {
       document.documentElement.setAttribute(BOOKING_SELECTION_ATTRIBUTE, "true");
       return () => {

@@ -32,6 +32,37 @@ export async function fetchCalendarData(
   return { people: PEOPLE, bookings: BOOKINGS, photos: [], today, connected: false };
 }
 
+export async function fetchCalendarYearData(year: number): Promise<{
+  people: Person[];
+  bookings: Booking[];
+  today: string;
+  connected: boolean;
+}> {
+  const today = todayIso();
+  if (isDatabaseConfigured()) {
+    const { getPeople, getBookingsForCalendarYear } = await import("@/db/queries");
+    const [people, bookings] = await Promise.all([
+      getPeople(),
+      getBookingsForCalendarYear(year),
+    ]);
+    return { people, bookings, today, connected: true };
+  }
+
+  return {
+    people: PEOPLE,
+    bookings: BOOKINGS.filter((booking) =>
+      rangesOverlap(
+        booking.start,
+        booking.end,
+        `${year - 1}-12-01`,
+        `${year + 1}-01-31`,
+      ),
+    ),
+    today,
+    connected: false,
+  };
+}
+
 export async function fetchMaryData(
   payment: PaymentConfig | null,
 ): Promise<{ stays: MaryStay[]; today: string; connected: boolean }> {
@@ -58,4 +89,13 @@ export async function fetchMaryData(
   }).sort((a, b) => a.start.localeCompare(b.start));
 
   return { stays, today, connected: false };
+}
+
+function rangesOverlap(
+  start: string,
+  end: string,
+  rangeStart: string,
+  rangeEnd: string,
+): boolean {
+  return start <= rangeEnd && end >= rangeStart;
 }

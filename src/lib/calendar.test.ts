@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  adjacentMonth,
   buildMonthCells,
+  monthHref,
+  paddedCalendarMonthRange,
   maxNextRowsForMonth,
   nextRowsNeededForIso,
 } from "./calendar";
@@ -17,6 +20,23 @@ const people: Person[] = [
 ];
 
 describe("calendar cell helpers", () => {
+  it("builds month navigation targets across year boundaries", () => {
+    expect(adjacentMonth(2026, 0, "prev")).toEqual({ year: 2025, month: 11 });
+    expect(adjacentMonth(2026, 11, "next")).toEqual({ year: 2027, month: 0 });
+    expect(monthHref(2026, 4)).toBe("?m=2026-05");
+  });
+
+  it("builds padded month ranges for visible photo metadata", () => {
+    expect(paddedCalendarMonthRange(2026, 10)).toEqual({
+      start: "2026-11-01",
+      end: "2026-12-31",
+    });
+    expect(paddedCalendarMonthRange(2026, 11)).toEqual({
+      start: "2026-12-01",
+      end: "2027-01-31",
+    });
+  });
+
   it("builds current-month cells without permanent virtual rows", () => {
     const cells = buildMonthCells(2026, 4, [], people, "2026-05-20");
 

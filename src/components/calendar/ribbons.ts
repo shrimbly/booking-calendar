@@ -70,11 +70,12 @@ export function buildBookingRows({
   editingId?: string | null;
 }): BookingRow[] {
   const allRows: BookingRow[] = [];
+  const peopleById = new Map(people.map((person) => [person.id, person]));
 
   for (const booking of bookings) {
     if (editingId && booking.id === editingId) continue;
 
-    const person = people.find((candidate) => candidate.id === booking.personId);
+    const person = peopleById.get(booking.personId);
     if (!person) continue;
 
     const bookingCells = visibleBookingCells(cells, booking);

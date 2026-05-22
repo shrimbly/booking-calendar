@@ -167,6 +167,14 @@ export function useBookingSelection({
     hasMovedDuringDrag.current = false;
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      clearSelection();
+      setActioningId(null);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [clearSelection, month, year]);
+
   const cancel = useCallback(() => {
     if (previewRows.length > 0) {
       setExitingPreviewRows(previewRows);
