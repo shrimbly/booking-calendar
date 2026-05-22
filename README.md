@@ -31,14 +31,16 @@ books their dates, and can see at a glance who is staying when.
 - Upload profile photos and stay photos when Vercel Blob is configured.
 - Run locally with demo data before connecting Neon Postgres.
 - Rename the place, people, footer, PIN, colors, and cookie prefix for your own family.
-- Hand the code to another coding agent with `AGENTS.md` and `CLAUDE.md` already in place.
+- Agent-friendly by design: hand this codebase to an AI coding assistant and ask them to configure it, or run `/setup` (or `npm run setup`) to set up database connections, storage integrations, and custom family parameters in one fell swoop.
 
 Mary mode is named for my aunt Mary, who embodies the idea of an admin far
 better than the word "admin" ever could.
 
 ## Simple Setup
 
-The easiest way to get up and running is to use the **interactive setup wizard**. It handles Vercel CLI checks, walks you through account linking, guides you in connecting Neon Postgres and Vercel Blob integrations, automatically pulls down connection strings, prompts you for custom family settings, and runs initial database migrations and seeds!
+This repository is **agent-friendly** by design. If you are pair-programming with an AI coding assistant, you can simply type `/setup` in your assistant's chat UI to get everything configured and running in one fell swoop.
+
+Otherwise, the easiest way to get up and running is to use the **interactive setup wizard**. It handles Vercel CLI checks, walks you through account linking, guides you in connecting Neon Postgres and Vercel Blob integrations, automatically pulls down connection strings, prompts you for custom family settings, and runs initial database migrations and seeds!
 
 To start the wizard, simply run:
 
