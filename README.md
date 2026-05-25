@@ -32,7 +32,7 @@ Mary mode is named for my aunt Mary, who embodies the idea of an admin far
 better than the word "admin" ever could.
 
 <p align="center">
-  <video src="./public/btl-1.mp4" controls width="100%" muted playsinline></video>
+  <video src="https://github.com/user-attachments/assets/ae3ba2d6-79ba-4d03-a3a2-924b08b5441f" controls width="100%" muted playsinline></video>
 </p>
 
 ## Simple Setup
