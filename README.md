@@ -12,52 +12,44 @@
 
 <br>
 
-This is a small app for the very specific, very real problem of sharing a family
-holiday home without turning the family chat into a booking tribunal. It is a
-private calendar with a shared PIN, optional stay costs, bank transfer details,
-photos from the trip, and just enough ceremony to keep everyone honest.
+A small app for the very specific, very real problem of sharing a family holiday
+home without turning the family chat into a booking tribunal: a private calendar
+with a shared PIN, optional stay costs, bank transfer details, photos from the
+trip, and just enough ceremony to keep everyone honest.
 
 ## What It Does
 
-Book the lakehouse is for families who have a lakehouse, bach, cabin, cottage,
-or other beloved place that people take turns using. Everyone picks who they are,
-books their dates, and can see at a glance who is staying when.
+For families with a lakehouse, bach, cabin, cottage, or other beloved place that
+people take turns using.
 
-- Pick your family identity, then claim dates on a spacious month calendar.
-- Avoid awkward double-bookings with server-side conflict checks.
-- Edit or delete your own stays without giving everyone full admin powers.
-- Add optional stay costs, bank account details, and a transfer prompt before booking.
-- Use Mary mode, the admin area where trusted Marys can check off paid stays in a persisted checklist.
-- Upload profile photos and stay photos when Vercel Blob is configured.
-- Run locally with demo data before connecting Neon Postgres.
-- Rename the place, people, footer, PIN, colors, and cookie prefix for your own family.
-- Agent-friendly by design: hand this codebase to an AI coding assistant and ask them to configure it, or run `/setup` (or `npm run setup`) to set up database connections, storage integrations, and custom family parameters in one fell swoop.
+- Pick your identity, then claim dates on a spacious month calendar.
+- Server-side conflict checks keep double-bookings off the table.
+- Edit and delete your own stays — no global admin powers required.
+- Optional nightly costs, bank details, and a transfer prompt at booking time.
+- **Mary mode** — a quiet admin area where trusted Marys can tick off paid stays.
+- Profile and stay photos when Vercel Blob is configured.
+- Runs locally with demo data before you connect Neon.
+- Rename the place, people, footer, PIN, colors, and cookie prefix to suit your own family.
+- Agent-friendly: hand the codebase to an AI assistant, or run `/setup` (or `npm run setup`) to wire up database, storage, and family settings in one go.
 
 Mary mode is named for my aunt Mary, who embodies the idea of an admin far
 better than the word "admin" ever could.
 
 ## Simple Setup
 
-This repository is **agent-friendly** by design. If you are pair-programming with an AI coding assistant, you can simply type `/setup` in your assistant's chat UI to get everything configured and running in one fell swoop.
-
-Otherwise, the easiest way to get up and running is to use the **interactive setup wizard**. It handles Vercel CLI checks, walks you through account linking, guides you in connecting Neon Postgres and Vercel Blob integrations, automatically pulls down connection strings, prompts you for custom family settings, and runs initial database migrations and seeds!
-
-To start the wizard, simply run:
+If you're pair-programming with an AI assistant, just type `/setup` in the chat.
+Otherwise the interactive wizard does the same thing:
 
 ```bash
 npm run setup
 ```
 
-*(Or type `/setup` in your AI coding assistant's chat UI!)*
+It checks the Vercel CLI, walks you through linking the Neon Postgres and Vercel
+Blob integrations, pulls the connection strings down for you, prompts for your
+family-specific settings (PIN, site title, nightly costs, bank details, admins),
+and runs the initial schema push and seed.
 
-The setup wizard will guide you through:
-1. **Deployment Assessment**: Assessing your Vercel familiarity and tailoring the step-by-step guidance.
-2. **Vercel Storage Integrations**: Explaining how to easily add Neon Postgres and Vercel Blob storage.
-3. **Environment Sync**: Pulling down secure secrets (`DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`) via the Vercel CLI automatically.
-4. **Interactive Settings Customizer**: Prompting you step-by-step for custom values like your `FAMILY_PIN`, site title, nightly costs, bank details, and admin IDs, then generating a perfect `.env.local` file.
-5. **Database Initialization**: Synchronizing the database schema (`db:push`) and seeding sample family members and bookings (`db:seed`).
-
-Once complete, your calendar is production-ready!
+Once it finishes, the calendar is production-ready.
 
 ---
 
