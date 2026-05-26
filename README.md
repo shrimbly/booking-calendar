@@ -32,8 +32,9 @@ Mary mode is named for my aunt Mary, who embodies the idea of an admin far
 better than the word "admin" ever could.
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/ae3ba2d6-79ba-4d03-a3a2-924b08b5441f" controls width="100%" muted playsinline></video>
+  <video src="https://github.com/user-attachments/assets/f2f57cec-b4b4-44c9-8c4e-e2e1d2f42a50" controls width="100%" muted playsinline></video>
 </p>
+
 
 ## Simple Setup
 
